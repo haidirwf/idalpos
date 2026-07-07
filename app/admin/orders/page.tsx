@@ -127,6 +127,10 @@ export default function AdminOrdersPOS() {
     setActionLoading(orderId);
     try {
       await updateOrderStatus(orderId, newStatus);
+      // Update local state immediately for instantaneous UI transition
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+      );
     } catch (err) {
       console.error('Failed to update status:', err);
     } finally {
@@ -138,6 +142,8 @@ export default function AdminOrdersPOS() {
     setActionLoading(orderId);
     try {
       await markAsPaid(orderId);
+      // Remove paid orders immediately from the active pipeline
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
     } catch (err) {
       console.error('Failed to mark as paid:', err);
     } finally {
