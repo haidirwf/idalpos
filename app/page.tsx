@@ -1,13 +1,19 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
+import QrScannerModal from '@/components/customer/QrScannerModal';
+import { QrCode, ShieldAlert } from 'lucide-react';
 
 export default function HomePage() {
+  const [showScanner, setShowScanner] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#0F0F10] text-white flex flex-col justify-between p-6 font-sans animate-in fade-in duration-500">
       <div className="my-auto text-center max-w-md mx-auto w-full">
-        {/* Decorative elements */}
+        {/* Logo/Icon */}
         <div className="relative mb-8">
-          <div className="w-24 h-24 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto border border-amber-500/20 shadow-[0_0_50px_rgba(245,158,11,0.15)] animate-bounce duration-1000">
+          <div className="w-24 h-24 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto border border-amber-500/20 shadow-[0_0_50px_rgba(245,158,11,0.15)]">
             <span className="text-4xl">🍴</span>
           </div>
         </div>
@@ -21,49 +27,63 @@ export default function HomePage() {
 
         {/* Action buttons */}
         <div className="mt-8 space-y-4">
-          <Link
-            href="/table/1"
-            className="block w-full bg-[#18181B] border border-neutral-800 rounded-2xl p-5 text-left transition-all duration-300 hover:border-amber-500/40 hover:shadow-[0_4px_25px_rgba(245,158,11,0.08)] group"
+          {/* Main Action: Camera Scan QR */}
+          <button
+            onClick={() => setShowScanner(true)}
+            className="w-full bg-[#F59E0B] hover:bg-amber-600 text-black font-extrabold rounded-2xl p-5 text-left transition-all duration-300 hover:shadow-[0_4px_25px_rgba(245,158,11,0.2)] active:scale-[0.99] flex items-center justify-between group cursor-pointer"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-sm text-white group-hover:text-[#F59E0B] transition-colors">
-                  📱 Demo Pelanggan
-                </h3>
-                <p className="text-xs text-neutral-500 mt-1">
-                  Masuk sebagai pelanggan di Meja 1
-                </p>
-              </div>
-              <span className="text-neutral-600 group-hover:text-[#F59E0B] transition-colors text-lg">
-                →
-              </span>
+            <div>
+              <h3 className="font-extrabold text-sm flex items-center gap-2">
+                <QrCode size={18} />
+                Pindai QR Meja
+              </h3>
+              <p className="text-xs text-black/70 font-semibold mt-1">
+                Scan QR Code di meja untuk melihat menu &amp; memesan
+              </p>
             </div>
-          </Link>
+            <span className="text-black text-xl font-bold group-hover:translate-x-1 transition-transform">
+              →
+            </span>
+          </button>
 
-          <Link
-            href="/login"
-            className="block w-full bg-[#18181B] border border-neutral-800 rounded-2xl p-5 text-left transition-all duration-300 hover:border-[#6366F1]/40 hover:shadow-[0_4px_25px_rgba(99,102,241,0.08)] group"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-sm text-white group-hover:text-[#6366F1] transition-colors">
-                  🔐 Portal Admin / Kasir
-                </h3>
-                <p className="text-xs text-neutral-500 mt-1">
-                  Masuk ke dashboard POS &amp; kelola menu
-                </p>
-              </div>
-              <span className="text-neutral-600 group-hover:text-[#6366F1] transition-colors text-lg">
-                →
-              </span>
-            </div>
-          </Link>
+          {/* Quick links grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <Link
+              href="/table/1"
+              className="bg-[#18181B] border border-neutral-800 rounded-2xl p-5 text-left transition-all duration-300 hover:border-neutral-700/50 group"
+            >
+              <h3 className="font-bold text-xs text-neutral-300 group-hover:text-white transition-colors">
+                Meja 1 (Demo)
+              </h3>
+              <p className="text-[10px] text-neutral-500 mt-1">
+                Akses cepat Meja 1 tanpa scan
+              </p>
+            </Link>
+
+            <Link
+              href="/login"
+              className="bg-[#18181B] border border-neutral-800 rounded-2xl p-5 text-left transition-all duration-300 hover:border-neutral-700/50 group flex flex-col justify-between"
+            >
+              <h3 className="font-bold text-xs text-neutral-300 group-hover:text-white transition-colors flex items-center gap-1.5">
+                <ShieldAlert size={12} className="text-neutral-500 group-hover:text-indigo-400 transition-colors" />
+                Portal Admin
+              </h3>
+              <p className="text-[10px] text-neutral-500 mt-1">
+                Kelola pesanan &amp; menu
+              </p>
+            </Link>
+          </div>
         </div>
       </div>
 
       <footer className="text-center text-xs text-neutral-600 pb-4">
         <p>© 2026 IDAL POS • Powered by Next.js &amp; Supabase</p>
       </footer>
+
+      {/* QR scanner modal overlay */}
+      {showScanner && (
+        <QrScannerModal onClose={() => setShowScanner(false)} />
+      )}
     </div>
   );
 }
