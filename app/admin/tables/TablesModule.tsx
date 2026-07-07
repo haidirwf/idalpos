@@ -17,12 +17,12 @@ export default function TablesModule() {
     const formData = new FormData(form);
     const number = formData.get('number') as string;
 
-    try {
-      await createTable(number);
+    const result = await createTable(number);
+    if (result && !result.success) {
+      setErrorMsg(result.error || 'Gagal menambahkan meja');
+    } else {
       form.reset();
       await refreshData();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Gagal menambahkan meja');
     }
   };
 
@@ -32,11 +32,11 @@ export default function TablesModule() {
     const formData = new FormData(e.currentTarget);
     const id = formData.get('id') as string;
 
-    try {
-      await deleteTable(id);
+    const result = await deleteTable(id);
+    if (result && !result.success) {
+      setErrorMsg(result.error || 'Gagal menghapus meja');
+    } else {
       await refreshData();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Gagal menghapus meja');
     }
   };
 
@@ -117,6 +117,7 @@ export default function TablesModule() {
                       <div className="flex gap-4">
                         {/* QR Code Container */}
                         <div className="w-24 h-24 shrink-0 bg-white p-1.5 rounded-xl border border-neutral-800 flex items-center justify-center relative overflow-hidden group-hover:scale-[1.02] transition-transform">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={qrCodeUrl}
                             alt={`QR Code Table ${t.number}`}

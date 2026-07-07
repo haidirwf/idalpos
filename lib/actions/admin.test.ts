@@ -49,7 +49,8 @@ describe('Admin CRUD Actions', () => {
   describe('Category Actions', () => {
     it('successfully inserts new category', async () => {
       mockInsert.mockResolvedValueOnce({ error: null });
-      await expect(createCategory('Foods', 'FoodIcon', 1)).resolves.not.toThrow();
+      const res = await createCategory('Foods', 'FoodIcon', 1);
+      expect(res.success).toBe(true);
       expect(mockInsert).toHaveBeenCalledWith('categories', {
         name: 'Foods',
         icon: 'FoodIcon',
@@ -58,31 +59,44 @@ describe('Admin CRUD Actions', () => {
     });
 
     it('rejects if name is missing or empty', async () => {
-      await expect(createCategory('', 'FoodIcon', 1)).rejects.toThrow('Name is required');
-      await expect(createCategory('   ', 'FoodIcon', 1)).rejects.toThrow('Name is required');
+      const res1 = await createCategory('', 'FoodIcon', 1);
+      expect(res1.success).toBe(false);
+      expect(res1.error).toBe('Name is required');
+
+      const res2 = await createCategory('   ', 'FoodIcon', 1);
+      expect(res2.success).toBe(false);
+      expect(res2.error).toBe('Name is required');
+
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
     it('successfully deletes category', async () => {
       mockDelete.mockResolvedValueOnce({ error: null });
-      await expect(deleteCategory('cat-id-123')).resolves.not.toThrow();
+      const res = await deleteCategory('cat-id-123');
+      expect(res.success).toBe(true);
       expect(mockDelete).toHaveBeenCalledWith('categories', 'id', 'cat-id-123');
     });
 
     it('rejects if id is missing in delete', async () => {
-      await expect(deleteCategory('')).rejects.toThrow('ID is required');
+      const res = await deleteCategory('');
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('ID is required');
       expect(mockDelete).not.toHaveBeenCalled();
     });
 
     it('rejects createCategory if user is unauthorized', async () => {
       mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: null });
-      await expect(createCategory('Foods', 'FoodIcon', 1)).rejects.toThrow('Unauthorized');
+      const res = await createCategory('Foods', 'FoodIcon', 1);
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Unauthorized');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
     it('rejects deleteCategory if user is unauthorized', async () => {
       mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: null });
-      await expect(deleteCategory('cat-id-123')).rejects.toThrow('Unauthorized');
+      const res = await deleteCategory('cat-id-123');
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Unauthorized');
       expect(mockDelete).not.toHaveBeenCalled();
     });
   });
@@ -100,7 +114,8 @@ describe('Admin CRUD Actions', () => {
         display_order: 2,
         is_featured: true
       };
-      await expect(createProduct(productData)).resolves.not.toThrow();
+      const res = await createProduct(productData);
+      expect(res.success).toBe(true);
       expect(mockInsert).toHaveBeenCalledWith('products', productData);
     });
 
@@ -115,7 +130,9 @@ describe('Admin CRUD Actions', () => {
         display_order: 2,
         is_featured: true
       };
-      await expect(createProduct(productData)).rejects.toThrow('Name is required');
+      const res = await createProduct(productData);
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Name is required');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
@@ -130,7 +147,9 @@ describe('Admin CRUD Actions', () => {
         display_order: 2,
         is_featured: true
       };
-      await expect(createProduct(productData)).rejects.toThrow('Category ID is required');
+      const res = await createProduct(productData);
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Category ID is required');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
@@ -145,13 +164,16 @@ describe('Admin CRUD Actions', () => {
         display_order: 2,
         is_featured: true
       };
-      await expect(createProduct(productData)).rejects.toThrow('Price must be greater than or equal to 0');
+      const res = await createProduct(productData);
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Price must be greater than or equal to 0');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
     it('successfully deletes product', async () => {
       mockDelete.mockResolvedValueOnce({ error: null });
-      await expect(deleteProduct('prod-123')).resolves.not.toThrow();
+      const res = await deleteProduct('prod-123');
+      expect(res.success).toBe(true);
       expect(mockDelete).toHaveBeenCalledWith('products', 'id', 'prod-123');
     });
 
@@ -167,13 +189,17 @@ describe('Admin CRUD Actions', () => {
         display_order: 2,
         is_featured: true
       };
-      await expect(createProduct(productData)).rejects.toThrow('Unauthorized');
+      const res = await createProduct(productData);
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Unauthorized');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
     it('rejects deleteProduct if user is unauthorized', async () => {
       mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: null });
-      await expect(deleteProduct('prod-123')).rejects.toThrow('Unauthorized');
+      const res = await deleteProduct('prod-123');
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Unauthorized');
       expect(mockDelete).not.toHaveBeenCalled();
     });
   });
@@ -181,7 +207,8 @@ describe('Admin CRUD Actions', () => {
   describe('Table Actions', () => {
     it('successfully inserts new table with qr code', async () => {
       mockInsert.mockResolvedValueOnce({ error: null });
-      await expect(createTable('T01')).resolves.not.toThrow();
+      const res = await createTable('T01');
+      expect(res.success).toBe(true);
       expect(mockInsert).toHaveBeenCalledWith('tables', {
         number: 'T01',
         qr_code_url: expect.stringContaining('T01')
@@ -189,25 +216,32 @@ describe('Admin CRUD Actions', () => {
     });
 
     it('rejects if table number is empty', async () => {
-      await expect(createTable('')).rejects.toThrow('Number is required');
+      const res = await createTable('');
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Number is required');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
     it('successfully deletes table', async () => {
       mockDelete.mockResolvedValueOnce({ error: null });
-      await expect(deleteTable('table-123')).resolves.not.toThrow();
+      const res = await deleteTable('table-123');
+      expect(res.success).toBe(true);
       expect(mockDelete).toHaveBeenCalledWith('tables', 'id', 'table-123');
     });
 
     it('rejects createTable if user is unauthorized', async () => {
       mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: null });
-      await expect(createTable('T01')).rejects.toThrow('Unauthorized');
+      const res = await createTable('T01');
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Unauthorized');
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
     it('rejects deleteTable if user is unauthorized', async () => {
       mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: null });
-      await expect(deleteTable('table-123')).rejects.toThrow('Unauthorized');
+      const res = await deleteTable('table-123');
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Unauthorized');
       expect(mockDelete).not.toHaveBeenCalled();
     });
   });

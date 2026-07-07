@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, DollarSign, Calendar, RefreshCcw } from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar } from 'lucide-react';
 import { usePOS } from '../POSContext';
 
 export default function ReportsModule() {
@@ -9,7 +9,6 @@ export default function ReportsModule() {
 
   const totalSales = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
   const totalCount = paidOrders.length;
-  const averageSale = totalCount > 0 ? Math.round(totalSales / totalCount) : 0;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300 font-sans">
@@ -27,39 +26,27 @@ export default function ReportsModule() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#141415] border border-neutral-800 rounded-2xl p-6 shadow-xl flex items-center gap-4">
-          <div className="bg-emerald-500/10 p-3.5 rounded-2xl text-emerald-500 border border-emerald-500/20">
-            <DollarSign size={24} />
+      <div className="grid grid-cols-2 gap-4 md:gap-6">
+        <div className="bg-[#141415] border border-neutral-800 rounded-2xl p-5 md:p-6 shadow-xl flex items-center gap-4">
+          <div className="bg-emerald-500/10 p-3 md:p-3.5 rounded-2xl text-emerald-500 border border-emerald-500/20 shrink-0">
+            <DollarSign className="w-5 h-5 md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Total Pendapatan</p>
-            <p className="text-2xl font-extrabold text-emerald-400 mt-1">
+            <p className="text-[10px] md:text-xs font-semibold text-neutral-500 uppercase tracking-wider">Total Pendapatan</p>
+            <p className="text-lg md:text-2xl font-extrabold text-emerald-400 mt-0.5 md:mt-1">
               Rp {totalSales.toLocaleString('id-ID')}
             </p>
           </div>
         </div>
 
-        <div className="bg-[#141415] border border-neutral-800 rounded-2xl p-6 shadow-xl flex items-center gap-4">
-          <div className="bg-indigo-500/10 p-3.5 rounded-2xl text-indigo-500 border border-indigo-500/20">
-            <Calendar size={24} />
+        <div className="bg-[#141415] border border-neutral-800 rounded-2xl p-5 md:p-6 shadow-xl flex items-center gap-4">
+          <div className="bg-indigo-500/10 p-3 md:p-3.5 rounded-2xl text-indigo-500 border border-indigo-500/20 shrink-0">
+            <Calendar className="w-5 h-5 md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Total Transaksi</p>
-            <p className="text-2xl font-extrabold text-indigo-400 mt-1">
+            <p className="text-[10px] md:text-xs font-semibold text-neutral-500 uppercase tracking-wider">Total Transaksi</p>
+            <p className="text-lg md:text-2xl font-extrabold text-indigo-400 mt-0.5 md:mt-1">
               {totalCount} Pesanan
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-[#141415] border border-neutral-800 rounded-2xl p-6 shadow-xl flex items-center gap-4">
-          <div className="bg-amber-500/10 p-3.5 rounded-2xl text-amber-500 border border-amber-500/20">
-            <RefreshCcw size={24} />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Rata-rata Pendapatan</p>
-            <p className="text-2xl font-extrabold text-amber-500 mt-1">
-              Rp {averageSale.toLocaleString('id-ID')}
             </p>
           </div>
         </div>

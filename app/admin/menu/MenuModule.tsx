@@ -24,21 +24,22 @@ export default function MenuModule() {
     const display_order = parseInt(formData.get('display_order') as string || '0', 10);
     const is_featured = formData.get('is_featured') === 'true';
 
-    try {
-      await createProduct({
-        name,
-        category_id,
-        description,
-        price,
-        image_url,
-        available,
-        display_order,
-        is_featured,
-      });
+    const result = await createProduct({
+      name,
+      category_id,
+      description,
+      price,
+      image_url,
+      available,
+      display_order,
+      is_featured,
+    });
+
+    if (result && !result.success) {
+      setErrorMsg(result.error || 'Gagal menambahkan produk');
+    } else {
       form.reset();
       await refreshData();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Gagal menambahkan produk');
     }
   };
 
@@ -48,11 +49,11 @@ export default function MenuModule() {
     const formData = new FormData(e.currentTarget);
     const id = formData.get('id') as string;
 
-    try {
-      await deleteProduct(id);
+    const result = await deleteProduct(id);
+    if (result && !result.success) {
+      setErrorMsg(result.error || 'Gagal menghapus produk');
+    } else {
       await refreshData();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Gagal menghapus produk');
     }
   };
 
@@ -65,12 +66,12 @@ export default function MenuModule() {
     const icon = formData.get('icon') as string;
     const sortOrder = parseInt(formData.get('sort_order') as string || '0', 10);
 
-    try {
-      await createCategory(name, icon, sortOrder);
+    const result = await createCategory(name, icon, sortOrder);
+    if (result && !result.success) {
+      setErrorMsg(result.error || 'Gagal menambahkan kategori');
+    } else {
       form.reset();
       await refreshData();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Gagal menambahkan kategori');
     }
   };
 
@@ -80,11 +81,11 @@ export default function MenuModule() {
     const formData = new FormData(e.currentTarget);
     const id = formData.get('id') as string;
 
-    try {
-      await deleteCategory(id);
+    const result = await deleteCategory(id);
+    if (result && !result.success) {
+      setErrorMsg(result.error || 'Gagal menghapus kategori');
+    } else {
       await refreshData();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Gagal menghapus kategori');
     }
   };
 

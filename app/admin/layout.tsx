@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense } from 'react';
 import { logout } from '@/app/login/actions';
-import { Grid, Utensils, Tablet, LogOut, ShoppingBag, TrendingUp, Menu as MenuIcon, X } from 'lucide-react';
+import { Utensils, Tablet, LogOut, ShoppingBag, TrendingUp, Menu as MenuIcon, X } from 'lucide-react';
 import { POSProvider, usePOS } from './POSContext';
 import AdminLoading from './loading';
 
