@@ -5,7 +5,6 @@ import { createProduct, deleteProduct, updateProduct, createCategory, deleteCate
 import { Utensils, Plus, Check, X, Star, Grid, Edit, AlertCircle, Loader2 } from 'lucide-react';
 import { usePOS, Product } from '../POSContext';
 import { SubmitButton, DeleteIconButton } from '@/components/SubmitButton';
-import { toast } from 'sonner';
 
 export default function MenuModule() {
   const { categories, products, activeTab, setActiveTab, refreshData } = usePOS();
@@ -41,10 +40,8 @@ export default function MenuModule() {
 
     if (result && !result.success) {
       setErrorMsg(result.error || 'Gagal menambahkan produk');
-      toast.error(result.error || 'Gagal menambahkan produk');
     } else {
       form.reset();
-      toast.success('Produk berhasil ditambahkan!');
       await refreshData();
     }
   };
@@ -79,10 +76,8 @@ export default function MenuModule() {
     setIsEditSubmitting(false);
     if (result && !result.success) {
       setEditErrorMsg(result.error || 'Gagal memperbarui produk');
-      toast.error(result.error || 'Gagal memperbarui produk');
     } else {
       setEditingProduct(null);
-      toast.success('Produk berhasil diperbarui!');
       await refreshData();
     }
   };
@@ -96,9 +91,7 @@ export default function MenuModule() {
     const result = await deleteProduct(id);
     if (result && !result.success) {
       setErrorMsg(result.error || 'Gagal menghapus produk');
-      toast.error(result.error || 'Gagal menghapus produk');
     } else {
-      toast.success('Produk berhasil dihapus.');
       await refreshData();
     }
   };
@@ -115,10 +108,8 @@ export default function MenuModule() {
     const result = await createCategory(name, icon, sortOrder);
     if (result && !result.success) {
       setErrorMsg(result.error || 'Gagal menambahkan kategori');
-      toast.error(result.error || 'Gagal menambahkan kategori');
     } else {
       form.reset();
-      toast.success('Kategori berhasil ditambahkan!');
       await refreshData();
     }
   };
@@ -132,9 +123,7 @@ export default function MenuModule() {
     const result = await deleteCategory(id);
     if (result && !result.success) {
       setErrorMsg(result.error || 'Gagal menghapus kategori');
-      toast.error(result.error || 'Gagal menghapus kategori');
     } else {
-      toast.success('Kategori berhasil dihapus.');
       await refreshData();
     }
   };

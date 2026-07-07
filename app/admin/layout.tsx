@@ -5,7 +5,6 @@ import { logout } from '@/app/login/actions';
 import { Utensils, Tablet, LogOut, ShoppingBag, TrendingUp, Menu as MenuIcon, X } from 'lucide-react';
 import { POSProvider, usePOS } from './POSContext';
 import AdminLoading from './loading';
-import { Toaster } from 'sonner';
 
 function AdminLayoutContent({
   children,
@@ -125,19 +124,6 @@ export default function AdminLayout({
       <POSProvider>
         <AdminLayoutContent>{children}</AdminLayoutContent>
       </POSProvider>
-      <Toaster
-        theme="dark"
-        position="bottom-right"
-        richColors
-        toastOptions={{
-          style: {
-            background: '#141415',
-            border: '1px solid #262626',
-            color: '#fff',
-            fontFamily: 'inherit',
-          },
-        }}
-      />
     </Suspense>
   );
 }
