@@ -222,3 +222,25 @@ export async function deleteTable(id: string) {
     return { success: false, error: msg };
   }
 }
+
+// Order Actions
+export async function deleteOrder(id: string) {
+  if (!id) {
+    return { success: false, error: 'ID is required' };
+  }
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    revalidatePath('/admin/reports');
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Gagal menghapus pesanan';
+    return { success: false, error: msg };
+  }
+}

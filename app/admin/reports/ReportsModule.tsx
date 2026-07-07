@@ -1,12 +1,29 @@
 'use client';
 
 import React, { useState } from 'react';
-import { TrendingUp, DollarSign, Calendar, Eye, X } from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar, Eye, X, Trash2, Loader2 } from 'lucide-react';
 import { usePOS, OrderCard } from '../POSContext';
+import { deleteOrder } from '@/lib/actions/admin';
 
 export default function ReportsModule() {
-  const { paidOrders } = usePOS();
+  const { paidOrders, refreshData } = usePOS();
   const [selectedOrder, setSelectedOrder] = useState<OrderCard | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleDeleteOrder = async (id: string, orderNumber: string) => {
+    if (!window.confirm(`Hapus riwayat pesanan #${orderNumber}? Data item pesanan juga akan terhapus permanen.`)) return;
+    setDeletingId(id);
+    setErrorMsg(null);
+    const result = await deleteOrder(id);
+    setDeletingId(null);
+    if (result && !result.success) {
+      setErrorMsg(result.error || 'Gagal menghapus pesanan');
+    } else {
+      if (selectedOrder?.id === id) setSelectedOrder(null);
+      await refreshData();
+    }
+  };
 
   const totalSales = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
   const totalCount = paidOrders.length;
@@ -25,6 +42,14 @@ export default function ReportsModule() {
           </p>
         </div>
       </div>
+
+      {/* Error Banner */}
+      {errorMsg && (
+        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-sm animate-in fade-in duration-200">
+          <p className="text-red-300 flex-1">{errorMsg}</p>
+          <button onClick={() => setErrorMsg(null)} className="text-red-400 hover:text-red-300 cursor-pointer"><X size={16} /></button>
+        </div>
+      )}
 
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-4 md:gap-6">
@@ -103,13 +128,23 @@ export default function ReportsModule() {
                       Rp {Number(o.total).toLocaleString('id-ID')}
                     </td>
                     <td className="p-4 pr-6 text-center">
-                      <button
-                        onClick={() => setSelectedOrder(o)}
-                        className="p-1.5 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-amber-500 transition-all cursor-pointer inline-flex items-center justify-center"
-                        title="Lihat Detail Pesanan"
-                      >
-                        <Eye size={16} />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => setSelectedOrder(o)}
+                          className="p-1.5 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-amber-500 transition-all cursor-pointer inline-flex items-center justify-center"
+                          title="Lihat Detail Pesanan"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteOrder(o.id, o.order_number)}
+                          disabled={deletingId === o.id}
+                          className="p-1.5 hover:bg-red-500/10 rounded-lg text-neutral-400 hover:text-red-400 transition-all cursor-pointer inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Hapus Riwayat"
+                        >
+                          {deletingId === o.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
