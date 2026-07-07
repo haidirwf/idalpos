@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { createTable, deleteTable } from '@/lib/actions/admin';
 import { Tablet, Plus, Trash2, ExternalLink, Download } from 'lucide-react';
 import { redirect } from 'next/navigation';
-import Image from 'next/image';
 
 export default async function TablesPage({
   searchParams,
@@ -113,73 +112,66 @@ export default async function TablesPage({
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {tables.map((t) => (
-                  <div key={t.id} className="bg-[#0F0F10] border border-neutral-800/80 rounded-2xl p-5 flex flex-col justify-between hover:border-neutral-700/50 transition-all group">
-                    <div className="flex gap-4">
-                      {/* QR Code Container */}
-                      <div className="w-24 h-24 shrink-0 bg-white p-1.5 rounded-xl border border-neutral-800 flex items-center justify-center relative overflow-hidden group-hover:scale-[1.02] transition-transform">
-                        {t.qr_code_url ? (
-                          <Image
-                            src={t.qr_code_url}
+                {tables.map((t) => {
+                  const qrCodeUrl = t.qr_code_url || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+                    `https://idalpos.vercel.app/table/${t.number}`
+                  )}`;
+                  return (
+                    <div key={t.id} className="bg-[#0F0F10] border border-neutral-800/80 rounded-2xl p-5 flex flex-col justify-between hover:border-neutral-700/50 transition-all group">
+                      <div className="flex gap-4">
+                        {/* QR Code Container */}
+                        <div className="w-24 h-24 shrink-0 bg-white p-1.5 rounded-xl border border-neutral-800 flex items-center justify-center relative overflow-hidden group-hover:scale-[1.02] transition-transform">
+                          <img
+                            src={qrCodeUrl}
                             alt={`QR Code Table ${t.number}`}
-                            width={96}
-                            height={96}
-                            unoptimized
                             className="w-full h-full object-contain"
                           />
-                        ) : (
-                          <span className="text-[10px] text-neutral-400 text-center font-semibold">Generating...</span>
-                        )}
-                      </div>
-
-                      {/* Info Container */}
-                      <div className="flex-1 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center justify-between gap-2">
-                            <h3 className="font-extrabold text-white text-base">
-                              Table {t.number}
-                            </h3>
-                            
-                            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                              {t.status || 'active'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-neutral-500 mt-1 line-clamp-1">
-                            ID: {t.id.substring(0, 8)}...
-                          </p>
                         </div>
 
-                        {/* Quick Action Links */}
-                        <div className="flex items-center gap-3 mt-3">
-                          {t.qr_code_url && (
-                            <>
-                              <a
-                                href={t.qr_code_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-xs text-amber-500 hover:text-amber-400 font-semibold transition-all"
-                                title="Open QR Code"
-                              >
-                                <ExternalLink size={12} />
-                                <span>Open</span>
-                              </a>
+                        {/* Info Container */}
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between gap-2">
+                              <h3 className="font-extrabold text-white text-base">
+                                Table {t.number}
+                              </h3>
                               
-                              <a
-                                href={t.qr_code_url}
-                                download={`table-${t.number}-qr.png`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white font-semibold transition-all"
-                                title="Download QR Code"
-                              >
-                                <Download size={12} />
-                                <span>Download</span>
-                              </a>
-                            </>
-                          )}
+                              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                                {t.status || 'active'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-neutral-500 mt-1 line-clamp-1">
+                              ID: {t.id.substring(0, 8)}...
+                            </p>
+                          </div>
+
+                          {/* Quick Action Links */}
+                          <div className="flex items-center gap-3 mt-3">
+                            <a
+                              href={qrCodeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 text-xs text-amber-500 hover:text-amber-400 font-semibold transition-all"
+                              title="Open QR Code"
+                            >
+                              <ExternalLink size={12} />
+                              <span>Open</span>
+                            </a>
+                            
+                            <a
+                              href={qrCodeUrl}
+                              download={`table-${t.number}-qr.png`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white font-semibold transition-all"
+                              title="Download QR Code"
+                            >
+                              <Download size={12} />
+                              <span>Download</span>
+                            </a>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
                     {/* Delete Footer */}
                     <div className="flex items-center justify-between border-t border-neutral-800/60 mt-4 pt-3">
@@ -199,7 +191,8 @@ export default async function TablesPage({
                       </form>
                     </div>
                   </div>
-                ))}
+                );
+              })}
               </div>
             )}
           </div>
