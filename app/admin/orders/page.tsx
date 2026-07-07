@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { updateOrderStatus, markAsPaid } from '@/lib/actions/orders';
-import { ShoppingBag, Loader2, Play, Check, Flame, Award, Navigation, DollarSign, Layers } from 'lucide-react';
+import { ShoppingBag, Loader2, Play, Flame, Award, Navigation, DollarSign, Layers } from 'lucide-react';
 
 interface OrderCard {
   id: string;
@@ -47,6 +47,83 @@ const NEXT_STATUS: Record<string, { status: string; label: string; className: st
     className: 'bg-amber-500 hover:bg-amber-600 text-black font-bold',
   },
 };
+
+// Memoized Order Card Component to prevent redundant renders
+const OrderCardItem = React.memo(({
+  order,
+  actionLoading,
+  onStatusChange,
+  onMarkPaid,
+  colKey
+}: {
+  order: OrderCard;
+  actionLoading: boolean;
+  onStatusChange: (id: string, status: string) => void;
+  onMarkPaid: (id: string) => void;
+  colKey: string;
+}) => {
+  return (
+    <div className="bg-[#0F0F10] p-4 rounded-xl border border-neutral-800 flex flex-col justify-between gap-3 shadow-md hover:border-neutral-700/60 transition-colors group">
+      <div className="space-y-1.5">
+        <div className="flex justify-between items-center">
+          <span className="font-extrabold text-amber-500 text-sm">#{order.order_number}</span>
+          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider bg-neutral-850 px-2 py-0.5 rounded border border-neutral-800">
+            {order.tables?.number ? `Meja ${order.tables.number}` : 'Guest'}
+          </span>
+        </div>
+        {order.customer_name && (
+          <p className="text-xs font-semibold text-neutral-300">
+            Pelanggan: <span className="text-neutral-400 font-normal">{order.customer_name}</span>
+          </p>
+        )}
+        {order.notes && (
+          <p className="text-xs text-neutral-500 italic bg-neutral-950/50 p-2 rounded border border-neutral-900">
+            &quot;{order.notes}&quot;
+          </p>
+        )}
+      </div>
+
+      <div className="pt-3 border-t border-neutral-800/80 flex flex-col gap-2">
+        <div className="flex justify-between items-center">
+          <span className="text-[10px] text-neutral-500">Total Harga</span>
+          <span className="text-xs font-extrabold text-emerald-400">
+            Rp {Number(order.total).toLocaleString('id-ID')}
+          </span>
+        </div>
+
+        {colKey === 'served' ? (
+          <button
+            onClick={() => onMarkPaid(order.id)}
+            disabled={actionLoading}
+            className="w-full bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-bold text-xs py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+          >
+            {actionLoading ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <DollarSign size={12} />
+            )}
+            <span>Bayar Cash</span>
+          </button>
+        ) : NEXT_STATUS[colKey] ? (
+          <button
+            onClick={() => onStatusChange(order.id, NEXT_STATUS[colKey].status)}
+            disabled={actionLoading}
+            className={`w-full font-bold text-xs py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 ${NEXT_STATUS[colKey].className}`}
+          >
+            {actionLoading ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              null
+            )}
+            <span>{NEXT_STATUS[colKey].label}</span>
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+});
+
+OrderCardItem.displayName = 'OrderCardItem';
 
 export default function AdminOrdersPOS() {
   const [orders, setOrders] = useState<OrderCard[]>([]);
@@ -123,11 +200,10 @@ export default function AdminOrdersPOS() {
     };
   }, []);
 
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
+  const handleStatusChange = useCallback(async (orderId: string, newStatus: string) => {
     setActionLoading(orderId);
     try {
       await updateOrderStatus(orderId, newStatus);
-      // Update local state immediately for instantaneous UI transition
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
       );
@@ -136,20 +212,19 @@ export default function AdminOrdersPOS() {
     } finally {
       setActionLoading(null);
     }
-  };
+  }, []);
 
-  const handleMarkPaid = async (orderId: string) => {
+  const handleMarkPaid = useCallback(async (orderId: string) => {
     setActionLoading(orderId);
     try {
       await markAsPaid(orderId);
-      // Remove paid orders immediately from the active pipeline
       setOrders((prev) => prev.filter((o) => o.id !== orderId));
     } catch (err) {
       console.error('Failed to mark as paid:', err);
     } finally {
       setActionLoading(null);
     }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -217,63 +292,14 @@ export default function AdminOrdersPOS() {
                   <p className="text-neutral-600 text-xs text-center py-12 italic">Tidak ada pesanan</p>
                 )}
                 {columnOrders.map((o) => (
-                  <div key={o.id} className="bg-[#0F0F10] p-4 rounded-xl border border-neutral-800 flex flex-col justify-between gap-3 shadow-md hover:border-neutral-700/60 transition-colors group">
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center">
-                        <span className="font-extrabold text-amber-500 text-sm">#{o.order_number}</span>
-                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider bg-neutral-850 px-2 py-0.5 rounded border border-neutral-800">
-                          {o.tables?.number ? `Meja ${o.tables.number}` : 'Guest'}
-                        </span>
-                      </div>
-                      {o.customer_name && (
-                        <p className="text-xs font-semibold text-neutral-300">
-                          Pelanggan: <span className="text-neutral-400 font-normal">{o.customer_name}</span>
-                        </p>
-                      )}
-                      {o.notes && (
-                        <p className="text-xs text-neutral-500 italic bg-neutral-950/50 p-2 rounded border border-neutral-900">
-                          &quot;{o.notes}&quot;
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="pt-3 border-t border-neutral-800/80 flex flex-col gap-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] text-neutral-500">Total Harga</span>
-                        <span className="text-xs font-extrabold text-emerald-400">
-                          Rp {Number(o.total).toLocaleString('id-ID')}
-                        </span>
-                      </div>
-
-                      {col.key === 'served' ? (
-                        <button
-                          onClick={() => handleMarkPaid(o.id)}
-                          disabled={actionLoading === o.id}
-                          className="w-full bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-bold text-xs py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
-                        >
-                          {actionLoading === o.id ? (
-                            <Loader2 size={12} className="animate-spin" />
-                          ) : (
-                            <DollarSign size={12} />
-                          )}
-                          <span>Bayar Cash</span>
-                        </button>
-                      ) : NEXT_STATUS[col.key] ? (
-                        <button
-                          onClick={() => handleStatusChange(o.id, NEXT_STATUS[col.key].status)}
-                          disabled={actionLoading === o.id}
-                          className={`w-full font-bold text-xs py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 ${NEXT_STATUS[col.key].className}`}
-                        >
-                          {actionLoading === o.id ? (
-                            <Loader2 size={12} className="animate-spin" />
-                          ) : (
-                            null
-                          )}
-                          <span>{NEXT_STATUS[col.key].label}</span>
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
+                  <OrderCardItem
+                    key={o.id}
+                    order={o}
+                    actionLoading={actionLoading === o.id}
+                    onStatusChange={handleStatusChange}
+                    onMarkPaid={handleMarkPaid}
+                    colKey={col.key}
+                  />
                 ))}
               </div>
             </div>

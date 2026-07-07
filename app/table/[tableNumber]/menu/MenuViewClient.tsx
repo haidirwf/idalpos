@@ -58,6 +58,137 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   Cookie,
 };
 
+// High-performance memoized Product Card Component with a custom equivalence checker
+const ProductCardItem = React.memo(({
+  product,
+  cartItem,
+  addToCart,
+  updateQuantity,
+  updateNote,
+}: {
+  product: Product;
+  cartItem?: { quantity: number; note: string } | null;
+  addToCart: (p: { productId: string; productName: string; price: number }) => void;
+  updateQuantity: (id: string, q: number) => void;
+  updateNote: (id: string, n: string) => void;
+}) => {
+  return (
+    <div
+      className={`bg-[#18181B] border rounded-2xl p-4 transition-all duration-300 ${
+        cartItem
+          ? 'border-amber-500/40 bg-amber-500/[0.02] shadow-[0_4px_20px_rgba(245,158,11,0.03)]'
+          : 'border-neutral-800 hover:border-neutral-700/60'
+      }`}
+    >
+      <div className="flex gap-4">
+        {/* Product Image Fallback */}
+        {product.image_url ? (
+          <Image
+            src={product.image_url}
+            alt={product.name}
+            width={80}
+            height={80}
+            unoptimized
+            className="w-20 h-20 object-cover rounded-2xl shrink-0 border border-neutral-800 bg-neutral-900"
+          />
+        ) : (
+          <div className="w-20 h-20 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center shrink-0 text-neutral-500">
+            <Utensils size={28} />
+          </div>
+        )}
+
+        {/* Product Content */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between gap-2">
+              <h4 className="font-extrabold text-white text-base leading-tight truncate">
+                {product.name}
+              </h4>
+              {product.is_featured && (
+                <span className="shrink-0 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-amber-500/20">
+                  Best Seller ⭐
+                </span>
+              )}
+            </div>
+            {product.description && (
+              <p className="text-xs text-neutral-450 line-clamp-2 mt-1 leading-relaxed">
+                {product.description}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between mt-3 gap-2">
+            <span className="font-mono text-base font-bold text-amber-500">
+              Rp {product.price.toLocaleString('id-ID')}
+            </span>
+
+            {!product.available ? (
+              <span className="bg-neutral-800 text-neutral-550 border border-neutral-750 text-xs font-bold px-4 py-2 rounded-xl">
+                Habis
+              </span>
+            ) : cartItem ? (
+              <div className="flex items-center gap-3 bg-[#0F0F10] border border-neutral-800 rounded-xl p-1 shrink-0">
+                <button
+                  onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}
+                  className="w-8 h-8 rounded-lg hover:bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+                >
+                  <Minus size={14} />
+                </button>
+                <span className="font-mono font-bold text-sm min-w-6 text-center text-white">
+                  {cartItem.quantity}
+                </span>
+                <button
+                  onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
+                  className="w-8 h-8 rounded-lg hover:bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() =>
+                  addToCart({
+                    productId: product.id,
+                    productName: product.name,
+                    price: product.price,
+                  })
+                }
+                className="bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-colors shrink-0"
+              >
+                Tambah
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Inline Note Input if in Cart */}
+      {cartItem && (
+        <div className="mt-3.5 pt-3.5 border-t border-neutral-800/60 animate-in slide-in-from-top-1 duration-200">
+          <input
+            type="text"
+            value={cartItem.note}
+            onChange={(e) => updateNote(product.id, e.target.value)}
+            placeholder="Tambah catatan (contoh: pedas, es sedikit)..."
+            className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+          />
+        </div>
+      )}
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  // Only re-render if the cart item state, availability, or details have changed
+  return (
+    prevProps.product.id === nextProps.product.id &&
+    prevProps.product.available === nextProps.product.available &&
+    prevProps.product.price === nextProps.product.price &&
+    prevProps.cartItem?.quantity === nextProps.cartItem?.quantity &&
+    prevProps.cartItem?.note === nextProps.cartItem?.note
+  );
+});
+
+ProductCardItem.displayName = 'ProductCardItem';
+
 export default function MenuViewClient({ tableNumber, categories, products }: Props) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -265,109 +396,14 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                 const cartItem = getCartItem(product.id);
 
                 return (
-                  <div
+                  <ProductCardItem
                     key={product.id}
-                    className={`bg-[#18181B] border rounded-2xl p-4 transition-all duration-300 ${
-                      cartItem
-                        ? 'border-amber-500/40 bg-amber-500/[0.02] shadow-[0_4px_20px_rgba(245,158,11,0.03)]'
-                        : 'border-neutral-800 hover:border-neutral-700/60'
-                    }`}
-                  >
-                    <div className="flex gap-4">
-                      {/* Product Image Fallback */}
-                      {product.image_url ? (
-                        <Image
-                          src={product.image_url}
-                          alt={product.name}
-                          width={80}
-                          height={80}
-                          unoptimized
-                          className="w-20 h-20 object-cover rounded-2xl shrink-0 border border-neutral-800 bg-neutral-900"
-                        />
-                      ) : (
-                        <div className="w-20 h-20 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center shrink-0 text-neutral-500">
-                          <Utensils size={28} />
-                        </div>
-                      )}
-
-                      {/* Product Content */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-start justify-between gap-2">
-                            <h4 className="font-extrabold text-white text-base leading-tight truncate">
-                              {product.name}
-                            </h4>
-                            {product.is_featured && (
-                              <span className="shrink-0 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-amber-500/20">
-                                Best Seller ⭐
-                              </span>
-                            )}
-                          </div>
-                          {product.description && (
-                            <p className="text-xs text-neutral-450 line-clamp-2 mt-1 leading-relaxed">
-                              {product.description}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between mt-3 gap-2">
-                          <span className="font-mono text-base font-bold text-amber-500">
-                            Rp {product.price.toLocaleString('id-ID')}
-                          </span>
-
-                          {!product.available ? (
-                            <span className="bg-neutral-800 text-neutral-550 border border-neutral-750 text-xs font-bold px-4 py-2 rounded-xl">
-                              Habis
-                            </span>
-                          ) : cartItem ? (
-                            <div className="flex items-center gap-3 bg-[#0F0F10] border border-neutral-800 rounded-xl p-1 shrink-0">
-                              <button
-                                onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}
-                                className="w-8 h-8 rounded-lg hover:bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
-                              >
-                                <Minus size={14} />
-                              </button>
-                              <span className="font-mono font-bold text-sm min-w-6 text-center text-white">
-                                {cartItem.quantity}
-                              </span>
-                              <button
-                                onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
-                                className="w-8 h-8 rounded-lg hover:bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
-                              >
-                                <Plus size={14} />
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() =>
-                                addToCart({
-                                  productId: product.id,
-                                  productName: product.name,
-                                  price: product.price,
-                                })
-                              }
-                              className="bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-colors shrink-0"
-                            >
-                              Tambah
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Inline Note Input if in Cart */}
-                    {cartItem && (
-                      <div className="mt-3.5 pt-3.5 border-t border-neutral-800/60 animate-in slide-in-from-top-1 duration-200">
-                        <input
-                          type="text"
-                          value={cartItem.note}
-                          onChange={(e) => updateNote(product.id, e.target.value)}
-                          placeholder="Tambah catatan (contoh: pedas, es sedikit)..."
-                          className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
-                        />
-                      </div>
-                    )}
-                  </div>
+                    product={product}
+                    cartItem={cartItem}
+                    addToCart={addToCart}
+                    updateQuantity={updateQuantity}
+                    updateNote={updateNote}
+                  />
                 );
               })}
             </div>
