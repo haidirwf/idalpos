@@ -2,21 +2,40 @@ import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { createTable, deleteTable } from '@/lib/actions/admin';
 import { Tablet, Plus, Trash2, ExternalLink, Download } from 'lucide-react';
+import { redirect } from 'next/navigation';
 
-export default async function TablesPage() {
+export default async function TablesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+  const errorMsg = params?.error;
   const supabase = await createClient();
   const { data: tables } = await supabase.from('tables').select('*').order('number');
 
   async function handleCreate(formData: FormData) {
     'use server';
     const number = formData.get('number') as string;
-    await createTable(number);
+    try {
+      await createTable(number);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred';
+      redirect(`/admin/tables?error=${encodeURIComponent(msg)}`);
+    }
+    redirect('/admin/tables');
   }
 
   async function handleDelete(formData: FormData) {
     'use server';
     const id = formData.get('id') as string;
-    await deleteTable(id);
+    try {
+      await deleteTable(id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred';
+      redirect(`/admin/tables?error=${encodeURIComponent(msg)}`);
+    }
+    redirect('/admin/tables');
   }
 
   return (
@@ -33,6 +52,16 @@ export default async function TablesPage() {
           </p>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
+          <div className="flex-1">
+            <h4 className="font-bold text-red-300">Action Failed</h4>
+            <p className="mt-0.5 text-xs text-red-400/90">{errorMsg}</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Form */}

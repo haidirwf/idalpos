@@ -2,8 +2,15 @@ import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { createProduct, deleteProduct } from '@/lib/actions/admin';
 import { Utensils, Plus, Trash2, Check, X, Star } from 'lucide-react';
+import { redirect } from 'next/navigation';
 
-export default async function MenuPage() {
+export default async function MenuPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+  const errorMsg = params?.error;
   const supabase = await createClient();
 
   // Fetch all categories for the dropdown selector
@@ -29,22 +36,34 @@ export default async function MenuPage() {
     const display_order = parseInt(formData.get('display_order') as string || '0', 10);
     const is_featured = formData.get('is_featured') === 'true';
 
-    await createProduct({
-      name,
-      category_id,
-      description,
-      price,
-      image_url,
-      available,
-      display_order,
-      is_featured,
-    });
+    try {
+      await createProduct({
+        name,
+        category_id,
+        description,
+        price,
+        image_url,
+        available,
+        display_order,
+        is_featured,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred';
+      redirect(`/admin/menu?error=${encodeURIComponent(msg)}`);
+    }
+    redirect('/admin/menu');
   }
 
   async function handleDelete(formData: FormData) {
     'use server';
     const id = formData.get('id') as string;
-    await deleteProduct(id);
+    try {
+      await deleteProduct(id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred';
+      redirect(`/admin/menu?error=${encodeURIComponent(msg)}`);
+    }
+    redirect('/admin/menu');
   }
 
   return (
@@ -61,6 +80,16 @@ export default async function MenuPage() {
           </p>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
+          <div className="flex-1">
+            <h4 className="font-bold text-red-300">Action Failed</h4>
+            <p className="mt-0.5 text-xs text-red-400/90">{errorMsg}</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Create Form */}

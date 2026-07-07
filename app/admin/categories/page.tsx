@@ -2,8 +2,16 @@ import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { createCategory, deleteCategory } from '@/lib/actions/admin';
 import { Grid, Plus, Trash2 } from 'lucide-react';
+import { redirect } from 'next/navigation';
 
-export default async function CategoriesPage() {
+export default async function CategoriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+  const errorMsg = params?.error;
+
   const supabase = await createClient();
   const { data: categories } = await supabase.from('categories').select('*').order('sort_order');
 
@@ -12,13 +20,25 @@ export default async function CategoriesPage() {
     const name = formData.get('name') as string;
     const icon = formData.get('icon') as string;
     const sortOrder = parseInt(formData.get('sort_order') as string || '0', 10);
-    await createCategory(name, icon, sortOrder);
+    try {
+      await createCategory(name, icon, sortOrder);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred';
+      redirect(`/admin/categories?error=${encodeURIComponent(msg)}`);
+    }
+    redirect('/admin/categories');
   }
 
   async function handleDelete(formData: FormData) {
     'use server';
     const id = formData.get('id') as string;
-    await deleteCategory(id);
+    try {
+      await deleteCategory(id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred';
+      redirect(`/admin/categories?error=${encodeURIComponent(msg)}`);
+    }
+    redirect('/admin/categories');
   }
 
   return (
@@ -35,6 +55,16 @@ export default async function CategoriesPage() {
           </p>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
+          <div className="flex-1">
+            <h4 className="font-bold text-red-300">Action Failed</h4>
+            <p className="mt-0.5 text-xs text-red-400/90">{errorMsg}</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Form */}
@@ -111,7 +141,7 @@ export default async function CategoriesPage() {
                 {categories.map((c) => (
                   <div key={c.id} className="py-4 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-neutral-800/50 border border-neutral-850 flex items-center justify-center text-amber-500 font-mono text-xs">
+                      <div className="w-10 h-10 rounded-lg bg-neutral-800/50 border border-neutral-800 flex items-center justify-center text-amber-500 font-mono text-xs">
                         {c.icon ? c.icon.substring(0, 3) : 'Cat'}
                       </div>
                       <div>

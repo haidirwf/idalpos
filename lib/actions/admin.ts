@@ -9,6 +9,8 @@ export async function createCategory(name: string, icon: string, sortOrder: numb
     throw new Error('Name is required');
   }
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
   const { error } = await supabase.from('categories').insert({ name, icon, sort_order: sortOrder });
   if (error) throw new Error(error.message);
   revalidatePath('/admin/categories');
@@ -19,6 +21,8 @@ export async function deleteCategory(id: string) {
     throw new Error('ID is required');
   }
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
   const { error } = await supabase.from('categories').delete().eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/admin/categories');
@@ -46,6 +50,8 @@ export async function createProduct(data: {
   }
 
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
   const { error } = await supabase.from('products').insert({
     name: data.name,
     category_id: data.category_id,
@@ -65,6 +71,8 @@ export async function deleteProduct(id: string) {
     throw new Error('ID is required');
   }
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
   const { error } = await supabase.from('products').delete().eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/admin/menu');
@@ -76,6 +84,8 @@ export async function createTable(number: string) {
     throw new Error('Number is required');
   }
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
   // Simulate table URL configuration
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
     `https://idalpos.vercel.app/table/${number}`
@@ -90,6 +100,8 @@ export async function deleteTable(id: string) {
     throw new Error('ID is required');
   }
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
   const { error } = await supabase.from('tables').delete().eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/admin/tables');
