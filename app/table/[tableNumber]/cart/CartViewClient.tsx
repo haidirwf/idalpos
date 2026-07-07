@@ -94,7 +94,7 @@ export default function CartViewClient({ tableNumber }: Props) {
       <header className="sticky top-0 bg-[#0F0F10]/95 backdrop-blur-md border-b border-neutral-900 px-6 py-4 flex items-center gap-4 z-10">
         <Link
           href={`/table/${tableNumber}/menu`}
-          className="p-2 hover:bg-neutral-900 rounded-xl transition-colors text-neutral-450 hover:text-white"
+          className="p-2 hover:bg-neutral-900 rounded-xl transition-colors text-neutral-400 hover:text-white"
         >
           <ArrowLeft size={20} />
         </Link>
@@ -107,7 +107,7 @@ export default function CartViewClient({ tableNumber }: Props) {
       {/* Main Container */}
       <main className="px-6 py-6 flex-1 max-w-2xl mx-auto w-full space-y-6">
         {totalItems === 0 ? (
-          <div className="text-center py-20 bg-[#18181B] border border-neutral-850 rounded-3xl p-8 flex flex-col items-center justify-center space-y-4">
+          <div className="text-center py-20 bg-[#18181B] border border-neutral-800 rounded-3xl p-8 flex flex-col items-center justify-center space-y-4">
             <div className="w-16 h-16 bg-neutral-900 border border-neutral-800 rounded-full flex items-center justify-center text-neutral-500 shadow-inner">
               <ShoppingBag size={28} />
             </div>
@@ -125,10 +125,10 @@ export default function CartViewClient({ tableNumber }: Props) {
         ) : (
           <form onSubmit={handleCheckout} className="space-y-6">
             {/* Items List Card */}
-            <div className="bg-[#18181B] border border-neutral-850 rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="bg-[#18181B] border border-neutral-800 rounded-3xl p-5 space-y-4 shadow-xl">
               <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest px-1">Daftar Item</h3>
               
-              <div className="divide-y divide-neutral-850/60">
+              <div className="divide-y divide-neutral-800/60">
                 {items.map((item) => (
                   <div key={item.productId} className="py-4 first:pt-0 last:pb-0 space-y-3">
                     <div className="flex justify-between items-start gap-4">
@@ -154,7 +154,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                            className="w-7 h-7 rounded-md hover:bg-neutral-850 flex items-center justify-center text-neutral-400 transition-colors"
+                            className="w-7 h-7 rounded-md hover:bg-neutral-800 flex items-center justify-center text-neutral-400 transition-colors"
                           >
                             <Minus size={12} />
                           </button>
@@ -164,7 +164,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                            className="w-7 h-7 rounded-md hover:bg-neutral-850 flex items-center justify-center text-neutral-400 transition-colors"
+                            className="w-7 h-7 rounded-md hover:bg-neutral-800 flex items-center justify-center text-neutral-400 transition-colors"
                           >
                             <Plus size={12} />
                           </button>
@@ -179,7 +179,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                         value={item.note}
                         onChange={(e) => updateNote(item.productId, e.target.value)}
                         placeholder="Catatan porsi/rasa (opsional)..."
-                        className="w-full bg-[#0F0F10] border border-neutral-850 rounded-xl px-3 py-2 text-[11px] text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 transition-all"
+                        className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-3 py-2 text-[11px] text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 transition-all"
                       />
                     </div>
                   </div>
@@ -188,7 +188,7 @@ export default function CartViewClient({ tableNumber }: Props) {
             </div>
 
             {/* Customer Details Form */}
-            <div className="bg-[#18181B] border border-neutral-850 rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="bg-[#18181B] border border-neutral-800 rounded-3xl p-5 space-y-4 shadow-xl">
               <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest px-1">Informasi Pelanggan</h3>
               
               <div className="space-y-4">
@@ -204,7 +204,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                     className={`w-full bg-[#0F0F10] border rounded-2xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 transition-all ${
                       errors.customerName
                         ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-                        : 'border-neutral-850 focus:border-amber-500 focus:ring-amber-500/20'
+                        : 'border-neutral-800 focus:border-amber-500 focus:ring-amber-500/20'
                     }`}
                   />
                   {errors.customerName && (
@@ -221,14 +221,14 @@ export default function CartViewClient({ tableNumber }: Props) {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Contoh: Meja no. 2, minta dipisah sambalnya..."
-                    className="w-full bg-[#0F0F10] border border-neutral-850 rounded-2xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 transition-all resize-none"
+                    className="w-full bg-[#0F0F10] border border-neutral-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 transition-all resize-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Payment Method Option */}
-            <div className="bg-[#18181B] border border-neutral-850 rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="bg-[#18181B] border border-neutral-800 rounded-3xl p-5 space-y-4 shadow-xl">
               <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest px-1">Metode Pembayaran</h3>
               
               <div className="border border-green-500/30 bg-green-500/[0.02] p-4 rounded-2xl flex items-center justify-between">
@@ -243,7 +243,7 @@ export default function CartViewClient({ tableNumber }: Props) {
             </div>
 
             {/* Summary Details */}
-            <div className="bg-[#18181B] border border-neutral-850 rounded-3xl p-5 space-y-3 shadow-xl font-mono text-sm">
+            <div className="bg-[#18181B] border border-neutral-800 rounded-3xl p-5 space-y-3 shadow-xl font-mono text-sm">
               <div className="flex justify-between text-neutral-400">
                 <span>Subtotal ({totalItems} Item)</span>
                 <span>Rp {totalPrice.toLocaleString('id-ID')}</span>
@@ -252,7 +252,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                 <span>Pajak & Biaya Layanan</span>
                 <span>Rp 0</span>
               </div>
-              <div className="border-t border-neutral-850/60 pt-3 flex justify-between font-bold text-base text-white">
+              <div className="border-t border-neutral-800/60 pt-3 flex justify-between font-bold text-base text-white">
                 <span className="font-sans">Total Pembayaran</span>
                 <span className="text-amber-500">Rp {totalPrice.toLocaleString('id-ID')}</span>
               </div>

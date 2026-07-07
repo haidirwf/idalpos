@@ -14,8 +14,14 @@ vi.mock('@/lib/supabase/server', () => ({
                   single: async () => ({ data: null, error: { message: 'Table not found' } }),
                 };
               }
+              if (val === '88') {
+                // Return inactive status for table number 88
+                return {
+                  single: async () => ({ data: { id: 'table-uuid-888', status: 'inactive' }, error: null }),
+                };
+              }
               return {
-                single: async () => ({ data: { id: 'table-uuid-123' }, error: null }),
+                single: async () => ({ data: { id: 'table-uuid-123', status: 'active' }, error: null }),
               };
             },
           }),
@@ -65,6 +71,17 @@ describe('Checkout flow server actions', () => {
         items: [{ productId: 'p1', productName: 'Ice Tea', price: 5000, quantity: 2, note: '' }],
       })
     ).rejects.toThrow('Table number 99 is not registered');
+  });
+
+  it('throws an error if table is inactive', async () => {
+    await expect(
+      checkoutOrder({
+        tableNumber: '88',
+        customerName: 'Budi',
+        notes: '',
+        items: [{ productId: 'p1', productName: 'Ice Tea', price: 5000, quantity: 2, note: '' }],
+      })
+    ).rejects.toThrow('Table number is inactive');
   });
 
   it('throws an error if customer name is empty', async () => {

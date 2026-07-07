@@ -49,12 +49,16 @@ export async function checkoutOrder(input: CheckoutInput) {
   // 1. Resolve table ID
   const { data: tableData, error: tableErr } = await supabase
     .from('tables')
-    .select('id')
+    .select('id, status')
     .eq('number', input.tableNumber)
     .single();
 
   if (tableErr || !tableData) {
     throw new Error(`Table number ${input.tableNumber} is not registered`);
+  }
+
+  if (tableData.status !== 'active') {
+    throw new Error('Table number is inactive');
   }
 
   const subtotal = input.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
