@@ -1,16 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useState, Suspense } from 'react';
 import { logout } from '@/app/login/actions';
 import { Grid, Utensils, Tablet, LogOut, ShoppingBag, TrendingUp, Menu as MenuIcon, X } from 'lucide-react';
+import { POSProvider, usePOS } from './POSContext';
+import AdminLoading from './loading';
 
-export default function AdminLayout({
+function AdminLayoutContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const { activeTab, setActiveTab } = usePOS();
+
+  const getLinkClass = (tab: string) => {
+    const base = "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm cursor-pointer border";
+    if (activeTab === tab || (tab === 'menu' && activeTab === 'categories')) {
+      return `${base} bg-neutral-800/50 text-white border-neutral-700/50`;
+    }
+    return `${base} text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border-transparent`;
+  };
+
+  const handleTabSwitch = (tab: string) => {
+    setActiveTab(tab);
+    setIsOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#0F0F10] text-white flex flex-col md:flex-row font-sans">
@@ -44,46 +59,34 @@ export default function AdminLayout({
         <div className={`${isOpen ? 'block mt-6' : 'hidden'} md:block md:mt-0 flex-1 flex flex-col justify-between`}>
           {/* Nav Links */}
           <nav className="space-y-1">
-            <Link
-              href="/admin/orders"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
+            <button
+              onClick={() => handleTabSwitch('orders')}
+              className={getLinkClass('orders')}
             >
               <ShoppingBag size={18} className="text-amber-500" />
               <span>Orders Pipeline</span>
-            </Link>
-            <Link
-              href="/admin/menu?tab=products"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
+            </button>
+            <button
+              onClick={() => handleTabSwitch('menu')}
+              className={getLinkClass('menu')}
             >
               <Utensils size={18} className="text-amber-500" />
               <span>Menu / Produk</span>
-            </Link>
-            <Link
-              href="/admin/menu?tab=categories"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
-            >
-              <Grid size={18} className="text-amber-500" />
-              <span>Kategori</span>
-            </Link>
-            <Link
-              href="/admin/tables"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
+            </button>
+            <button
+              onClick={() => handleTabSwitch('tables')}
+              className={getLinkClass('tables')}
             >
               <Tablet size={18} className="text-amber-500" />
               <span>Tables & QR Codes</span>
-            </Link>
-            <Link
-              href="/admin/reports"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
+            </button>
+            <button
+              onClick={() => handleTabSwitch('reports')}
+              className={getLinkClass('reports')}
             >
               <TrendingUp size={18} className="text-amber-500" />
               <span>Laporan Penjualan</span>
-            </Link>
+            </button>
           </nav>
 
           {/* Footer / Logout */}
@@ -108,5 +111,19 @@ export default function AdminLayout({
         </div>
       </main>
     </div>
+  );
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={<AdminLoading />}>
+      <POSProvider>
+        <AdminLayoutContent>{children}</AdminLayoutContent>
+      </POSProvider>
+    </Suspense>
   );
 }
