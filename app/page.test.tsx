@@ -26,7 +26,7 @@ describe('HomePage Component', () => {
     expect(screen.getByText(/Portal Admin/)).toBeInTheDocument();
   });
 
-  it('toggles QR scanner modal when scan button is clicked', () => {
+  it('toggles QR scanner modal when scan button is clicked', async () => {
     render(<HomePage />);
     
     // Modal shouldn't be visible initially
@@ -36,7 +36,8 @@ describe('HomePage Component', () => {
     const scanBtn = screen.getByText(/Pindai QR Meja/);
     fireEvent.click(scanBtn);
 
-    // Modal elements should be visible
-    expect(screen.getByText('Pindai QR Code')).toBeInTheDocument();
+    // Modal elements should be visible (wait for dynamic import)
+    const modalHeader = await screen.findByText('Pindai QR Code');
+    expect(modalHeader).toBeInTheDocument();
   });
 });

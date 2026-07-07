@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Camera, CameraOff, AlertTriangle } from 'lucide-react';
-import type { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface QrScannerModalProps {
   onClose: () => void;
@@ -16,76 +16,65 @@ export default function QrScannerModal({ onClose }: QrScannerModalProps) {
   const scannerInstanceRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
-    let html5QrCode: Html5Qrcode | null = null;
+    const element = document.getElementById('reader-element');
+    if (!element) {
+      return;
+    }
+    const html5QrCode = new Html5Qrcode('reader-element');
+    scannerInstanceRef.current = html5QrCode;
 
-    // Load html5-qrcode dynamically to prevent SSR issues
-    import('html5-qrcode')
-      .then((module) => {
-        const element = document.getElementById('reader-element');
-        if (!element) {
-          return;
+    html5QrCode
+      .start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: (width: number, height: number) => {
+            const size = Math.min(width, height) * 0.7;
+            return { width: size, height: size };
+          },
+        },
+        (decodedText: string) => {
+          // Success callback
+          const match = decodedText.match(/\/table\/([a-zA-Z0-9_-]+)/);
+          let tableNum = '';
+          if (match) {
+            tableNum = match[1];
+          } else if (/^[a-zA-Z0-9_-]+$/.test(decodedText.trim())) {
+            tableNum = decodedText.trim();
+          }
+
+          if (tableNum) {
+            // Stop scanner first, then navigate
+            html5QrCode
+              .stop()
+              .then(() => {
+                router.push(`/table/${tableNum}`);
+                onClose();
+              })
+              .catch((err: unknown) => {
+                console.error('Failed to stop scanner:', err);
+                router.push(`/table/${tableNum}`);
+                onClose();
+              });
+          }
+        },
+        () => {
+          // Ignore failure callbacks to reduce noise
         }
-        html5QrCode = new module.Html5Qrcode('reader-element');
-        scannerInstanceRef.current = html5QrCode;
-
-        html5QrCode
-          .start(
-            { facingMode: 'environment' },
-            {
-              fps: 10,
-              qrbox: (width: number, height: number) => {
-                const size = Math.min(width, height) * 0.7;
-                return { width: size, height: size };
-              },
-            },
-            (decodedText: string) => {
-              // Success callback
-              const match = decodedText.match(/\/table\/([a-zA-Z0-9_-]+)/);
-              let tableNum = '';
-              if (match) {
-                tableNum = match[1];
-              } else if (/^[a-zA-Z0-9_-]+$/.test(decodedText.trim())) {
-                tableNum = decodedText.trim();
-              }
-
-              if (tableNum && html5QrCode) {
-                // Stop scanner first, then navigate
-                html5QrCode
-                  .stop()
-                  .then(() => {
-                    router.push(`/table/${tableNum}`);
-                    onClose();
-                  })
-                  .catch((err: unknown) => {
-                    console.error('Failed to stop scanner:', err);
-                    router.push(`/table/${tableNum}`);
-                    onClose();
-                  });
-              }
-            },
-            () => {
-              // Ignore failure callbacks to reduce noise
-            }
-          )
-          .then(() => {
-            setInitializing(false);
-          })
-          .catch((err: unknown) => {
-            console.error('Camera startup error:', err);
-            setErrorMsg(
-              'Gagal mengakses kamera. Pastikan izin kamera telah diberikan dan perangkat mendukung.'
-            );
-            setInitializing(false);
-          });
+      )
+      .then(() => {
+        setInitializing(false);
       })
-      .catch((err) => {
-        console.error('Library load error:', err);
-        setErrorMsg('Gagal memuat modul QR scanner.');
+      .catch((err: unknown) => {
+        console.error('Camera startup error:', err);
+        setErrorMsg(
+          'Gagal mengakses kamera. Pastikan izin kamera telah diberikan dan perangkat mendukung.'
+        );
         setInitializing(false);
       });
 
     return () => {
-      if (html5QrCode && html5QrCode.isScanning) {
+      if (html5QrCode.isScanning) {
         html5QrCode.stop().catch((err: unknown) => {
           console.error('Cleanup stop error:', err);
         });

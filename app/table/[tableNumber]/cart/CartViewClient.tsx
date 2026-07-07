@@ -15,7 +15,7 @@ interface Props {
 export default function CartViewClient({ tableNumber }: Props) {
   const router = useRouter();
   const { items, updateQuantity, updateNote, removeItem, clearCart } = useCartStore();
-  
+
   const [isMounted, setIsMounted] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [notes, setNotes] = useState('');
@@ -127,7 +127,7 @@ export default function CartViewClient({ tableNumber }: Props) {
             {/* Items List Card */}
             <div className="bg-[#18181B] border border-neutral-800 rounded-3xl p-5 space-y-4 shadow-xl">
               <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest px-1">Daftar Item</h3>
-              
+
               <div className="divide-y divide-neutral-800/60">
                 {items.map((item) => (
                   <div key={item.productId} className="py-4 first:pt-0 last:pb-0 space-y-3">
@@ -138,7 +138,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                           Rp {item.price.toLocaleString('id-ID')}
                         </span>
                       </div>
-                      
+
                       {/* Quantity Controls & Delete */}
                       <div className="flex items-center gap-2.5 shrink-0">
                         <button
@@ -149,7 +149,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                         >
                           <Trash2 size={14} />
                         </button>
-                        
+
                         <div className="flex items-center gap-2 bg-[#0F0F10] border border-neutral-800 rounded-lg p-0.5">
                           <button
                             type="button"
@@ -190,7 +190,7 @@ export default function CartViewClient({ tableNumber }: Props) {
             {/* Customer Details Form */}
             <div className="bg-[#18181B] border border-neutral-800 rounded-3xl p-5 space-y-4 shadow-xl">
               <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest px-1">Informasi Pelanggan</h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-neutral-300 mb-1.5 uppercase tracking-wide">
@@ -201,11 +201,10 @@ export default function CartViewClient({ tableNumber }: Props) {
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="Masukkan nama Anda (min. 3 karakter)"
-                    className={`w-full bg-[#0F0F10] border rounded-2xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 transition-all ${
-                      errors.customerName
+                    className={`w-full bg-[#0F0F10] border rounded-2xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 transition-all ${errors.customerName
                         ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
                         : 'border-neutral-800 focus:border-amber-500 focus:ring-amber-500/20'
-                    }`}
+                      }`}
                   />
                   {errors.customerName && (
                     <p className="text-[11px] text-red-400 mt-1.5 font-medium">{errors.customerName}</p>
@@ -230,7 +229,7 @@ export default function CartViewClient({ tableNumber }: Props) {
             {/* Payment Method Option */}
             <div className="bg-[#18181B] border border-neutral-800 rounded-3xl p-5 space-y-4 shadow-xl">
               <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest px-1">Metode Pembayaran</h3>
-              
+
               <div className="border border-green-500/30 bg-green-500/[0.02] p-4 rounded-2xl flex items-center justify-between">
                 <div>
                   <h4 className="font-extrabold text-sm text-white">Bayar di Kasir (Tunai / Cash)</h4>

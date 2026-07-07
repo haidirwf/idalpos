@@ -2,8 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import QrScannerModal from '@/components/customer/QrScannerModal';
+import dynamic from 'next/dynamic';
 import { QrCode, ShieldAlert } from 'lucide-react';
+
+const QrScannerModal = dynamic(() => import('@/components/customer/QrScannerModal'), {
+  ssr: false,
+});
 
 export default function HomePage() {
   const [showScanner, setShowScanner] = useState(false);
