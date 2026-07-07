@@ -77,6 +77,18 @@ export default function CartViewClient({ tableNumber }: Props) {
         })),
       });
 
+      // Save tracking token to localStorage for this table
+      try {
+        const storedTokensStr = localStorage.getItem(`tokens_table_${tableNumber}`) || '[]';
+        const storedTokens = JSON.parse(storedTokensStr);
+        if (!storedTokens.includes(result.trackingToken)) {
+          storedTokens.push(result.trackingToken);
+          localStorage.setItem(`tokens_table_${tableNumber}`, JSON.stringify(storedTokens));
+        }
+      } catch (err) {
+        console.error('Failed to save tracking token to localStorage:', err);
+      }
+
       toast.success('Pesanan berhasil dibuat!');
       clearCart();
       router.push(`/table/${tableNumber}/tracking/${result.trackingToken}`);
