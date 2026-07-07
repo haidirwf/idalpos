@@ -6,20 +6,32 @@ import TableLandingPage from './page';
 const mockSingle = vi.fn();
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          single: async () => mockSingle()
-        })
-      })
-    })
-  })
+    from: (table: string) => {
+      if (table === 'tables') {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: async () => mockSingle(),
+            }),
+          }),
+        };
+      }
+      return {
+        select: () => ({
+          order: async () => ({ data: [], error: null }),
+        }),
+      };
+    },
+  }),
 }));
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
+  }),
+  useSearchParams: () => ({
+    get: () => null,
   }),
 }));
 

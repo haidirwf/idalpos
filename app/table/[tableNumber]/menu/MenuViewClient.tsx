@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useTransition } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { useCartStore } from '@/lib/store/cartStore';
+import { useTable } from '../TableContext';
 import {
   Search,
   Plus,
@@ -38,15 +36,6 @@ interface Product {
   is_featured: boolean;
 }
 
-interface MyOrder {
-  id: string;
-  order_number: string;
-  status: string;
-  total: number;
-  tracking_token: string;
-  created_at: string;
-}
-
 interface Props {
   tableNumber: string;
   categories: Category[];
@@ -59,7 +48,6 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
   Cookie,
 };
 
-// High-performance memoized Product Card Component with a custom equivalence checker
 const ProductCardItem = React.memo(({
   product,
   cartItem,
@@ -82,7 +70,7 @@ const ProductCardItem = React.memo(({
       }`}
     >
       <div className="flex gap-4">
-        {/* Product Image Fallback */}
+        {/* Product Image */}
         {product.image_url ? (
           <Image
             src={product.image_url}
@@ -178,7 +166,6 @@ const ProductCardItem = React.memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Only re-render if the cart item state, availability, or details have changed
   return (
     prevProps.product.id === nextProps.product.id &&
     prevProps.product.available === nextProps.product.available &&
@@ -191,14 +178,11 @@ const ProductCardItem = React.memo(({
 ProductCardItem.displayName = 'ProductCardItem';
 
 export default function MenuViewClient({ tableNumber, categories, products }: Props) {
-  const router = useRouter();
-  const [isCartPending, startCartTransition] = useTransition();
+  const { setActiveView, setActiveTrackingToken, myOrders, loadingOrders } = useTable();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
-  const [myOrders, setMyOrders] = useState<MyOrder[]>([]);
   const [showMyOrders, setShowMyOrders] = useState(false);
-  const [loadingOrders, setLoadingOrders] = useState(false);
 
   const { items, addToCart, updateQuantity, updateNote } = useCartStore();
 
@@ -206,69 +190,7 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
     setIsMounted(true);
   }, []);
 
-  // Fetch customer orders from localStorage and listen to updates in real time
-  useEffect(() => {
-    if (!isMounted) return;
-
-    let tokens: string[] = [];
-    try {
-      const storedTokensStr = localStorage.getItem(`tokens_table_${tableNumber}`) || '[]';
-      tokens = JSON.parse(storedTokensStr);
-    } catch (err) {
-      console.error('Failed to parse stored tokens:', err);
-    }
-
-    if (tokens.length === 0) return;
-
-    const supabase = createClient();
-    setLoadingOrders(true);
-
-    async function fetchOrders() {
-      try {
-        const { data } = await supabase
-          .from('orders')
-          .select('id, order_number, status, total, tracking_token, created_at')
-          .in('tracking_token', tokens)
-          .order('created_at', { ascending: false });
-        if (data) {
-          setMyOrders(data as MyOrder[]);
-        }
-      } catch (err) {
-        console.error('Error fetching my orders:', err);
-      } finally {
-        setLoadingOrders(false);
-      }
-    }
-
-    fetchOrders();
-
-    // Subscribe to realtime updates on these orders
-    const channel = supabase
-      .channel(`table-${tableNumber}-my-orders`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'orders' },
-        (payload) => {
-          const updatedOrder = payload.new as MyOrder;
-          if (tokens.includes(updatedOrder.tracking_token)) {
-            setMyOrders((prev) =>
-              prev.map((o) =>
-                o.tracking_token === updatedOrder.tracking_token
-                  ? { ...o, ...updatedOrder }
-                  : o
-              )
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [isMounted, tableNumber]);
-
-  // Filter products based on search and category
+  // Filter products locally in memory (Search & Filter)
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesCategory =
@@ -309,11 +231,10 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
           {isMounted && myOrders.length > 0 && (
             <button
               onClick={() => setShowMyOrders(true)}
-              className="relative bg-amber-500/10 border border-amber-500/30 text-amber-500 p-2.5 rounded-xl hover:bg-amber-500/20 transition-all cursor-pointer shadow-lg"
+              className="relative bg-amber-500/10 border border-amber-500/30 text-amber-500 p-2.5 rounded-xl hover:bg-amber-500/20 transition-all cursor-pointer shadow-lg animate-in fade-in"
               title="Pesanan Saya"
             >
               <ClipboardList size={16} />
-              {/* Pulsing indicator if active orders exist */}
               {myOrders.some((o) => o.status !== 'paid') && (
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-[#0F0F10] animate-pulse" />
               )}
@@ -343,13 +264,13 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
           />
         </div>
 
-        {/* Category Selector Carousel */}
+        {/* Category Selector */}
         <div className="space-y-2">
           <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-widest px-1">Kategori</h3>
           <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6">
             <button
               onClick={() => setSelectedCategoryId('all')}
-              className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
+              className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 cursor-pointer ${
                 selectedCategoryId === 'all'
                   ? 'bg-amber-500 text-black border-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)]'
                   : 'bg-[#18181B] text-neutral-300 border-neutral-800 hover:bg-[#202023] hover:text-white'
@@ -365,7 +286,7 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
+                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 cursor-pointer ${
                     selectedCategoryId === cat.id
                       ? 'bg-amber-500 text-black border-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)]'
                       : 'bg-[#18181B] text-neutral-300 border-neutral-800 hover:bg-[#202023] hover:text-white'
@@ -397,7 +318,6 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
             <div className="space-y-4">
               {filteredProducts.map((product) => {
                 const cartItem = getCartItem(product.id);
-
                 return (
                   <ProductCardItem
                     key={product.id}
@@ -417,7 +337,7 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
       {/* Floating Cart Summary Bar */}
       {isMounted && totalItems > 0 && (
         <div className="fixed bottom-6 left-6 right-6 max-w-md mx-auto z-20 animate-in slide-in-from-bottom-4 duration-300">
-          <div className="bg-amber-500 text-black px-5 py-4 rounded-2xl flex items-center justify-between shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] border border-amber-400">
+          <div className="bg-amber-500 text-black px-5 py-4 rounded-2xl flex items-center justify-between shadow-2xl transition-all border border-amber-400">
             <div className="flex items-center gap-3">
               <div className="bg-black/10 p-2.5 rounded-xl">
                 <ShoppingCart size={20} className="text-black" />
@@ -430,22 +350,10 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
               </div>
             </div>
             <button
-              onClick={() => {
-                startCartTransition(() => {
-                  router.push(`/table/${tableNumber}/cart`);
-                });
-              }}
-              disabled={isCartPending}
-              className="bg-black hover:bg-neutral-900 text-white font-black px-5 py-3 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-80"
+              onClick={() => setActiveView('cart')}
+              className="bg-black hover:bg-neutral-900 text-white font-black px-5 py-3 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg cursor-pointer"
             >
-              {isCartPending ? (
-                <>
-                  <Loader2 size={12} className="animate-spin" />
-                  <span>Memuat...</span>
-                </>
-              ) : (
-                <span>Lihat Keranjang</span>
-              )}
+              Lihat Keranjang
             </button>
           </div>
         </div>
@@ -456,9 +364,8 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center font-sans animate-in fade-in duration-300">
           {/* Backdrop Click to Close */}
           <div className="absolute inset-0" onClick={() => setShowMyOrders(false)} />
-
+          
           <div className="bg-[#141415] border-t border-neutral-800 rounded-t-[32px] w-full max-w-md p-6 relative z-10 shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col max-h-[80vh]">
-            {/* Grab Handle */}
             <div className="w-12 h-1 bg-neutral-800 rounded-full mx-auto mb-6" />
 
             <div className="flex justify-between items-center mb-6">
@@ -557,13 +464,16 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                           <p className="text-xs text-neutral-300 mt-0.5 font-medium">{config.desc}</p>
                         </div>
 
-                        <Link
-                          href={`/table/${tableNumber}/tracking/${order.tracking_token}`}
+                        <button
+                          onClick={() => {
+                            setActiveTrackingToken(order.tracking_token);
+                            setShowMyOrders(false);
+                          }}
                           className="bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-neutral-300 hover:text-white px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer shrink-0"
                         >
                           <span>Pantau Live</span>
                           <ExternalLink size={10} />
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   );

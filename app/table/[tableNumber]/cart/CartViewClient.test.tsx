@@ -6,11 +6,27 @@ import { useCartStore } from '@/lib/store/cartStore';
 import { checkoutOrder } from '@/app/table/actions';
 import { toast } from 'sonner';
 
-// Mock useRouter
+// Mock router navigation
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
+  }),
+  useSearchParams: () => ({
+    get: () => null,
+  }),
+}));
+
+// Mock TableContext useTable hook
+const mockSetActiveView = vi.fn();
+const mockSetActiveTrackingToken = vi.fn();
+const mockRefreshOrders = vi.fn();
+
+vi.mock('../TableContext', () => ({
+  useTable: () => ({
+    setActiveView: mockSetActiveView,
+    setActiveTrackingToken: mockSetActiveTrackingToken,
+    refreshOrders: mockRefreshOrders,
   }),
 }));
 
@@ -38,7 +54,12 @@ describe('CartViewClient Component', () => {
 
     expect(screen.getByText('Keranjang Kosong')).toBeInTheDocument();
     expect(screen.getByText('Belum ada menu yang ditambahkan ke keranjang Anda.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Kembali ke Menu' })).toHaveAttribute('href', '/table/02/menu');
+    
+    // Should be a button instead of a Link now
+    const backBtn = screen.getByRole('button', { name: 'Kembali ke Menu' });
+    expect(backBtn).toBeInTheDocument();
+    fireEvent.click(backBtn);
+    expect(mockSetActiveView).toHaveBeenCalledWith('menu');
   });
 
   it('renders cart items and details correctly', () => {
@@ -129,7 +150,7 @@ describe('CartViewClient Component', () => {
         ],
       });
       expect(toast.success).toHaveBeenCalledWith('Pesanan berhasil dibuat!');
-      expect(mockPush).toHaveBeenCalledWith('/table/02/tracking/tracking-uuid-xyz');
+      expect(mockSetActiveTrackingToken).toHaveBeenCalledWith('tracking-uuid-xyz');
       expect(useCartStore.getState().items).toHaveLength(0); // Cart is cleared
     });
   });

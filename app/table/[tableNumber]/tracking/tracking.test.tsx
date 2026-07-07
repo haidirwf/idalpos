@@ -1,10 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import React from 'react';
-import OrderTrackingPage from './[trackingToken]/page';
+import TrackingViewClient from './TrackingViewClient';
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ trackingToken: 'sample-token', tableNumber: '1' }),
+  useSearchParams: () => ({
+    get: () => null,
+  }),
+}));
+
+vi.mock('../TableContext', () => ({
+  useTable: () => ({
+    setActiveView: vi.fn(),
+  }),
 }));
 
 vi.mock('@/lib/supabase/client', () => ({
@@ -31,7 +40,7 @@ vi.mock('@/lib/supabase/client', () => ({
 describe('Tracking Page test suites', () => {
   it('resolves orders state and displays correct statuses', async () => {
     await act(async () => {
-      render(<OrderTrackingPage />);
+      render(<TrackingViewClient trackingToken="sample-token" tableNumber="1" />);
     });
     const textNode = await screen.findByText(/ORD-1005/);
     expect(textNode).toBeInTheDocument();

@@ -13,12 +13,13 @@ export default function TablesModule() {
   const handleCreateSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg(null);
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     const number = formData.get('number') as string;
 
     try {
       await createTable(number);
-      e.currentTarget.reset();
+      form.reset();
       await refreshData();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Gagal menambahkan meja');

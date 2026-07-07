@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/lib/store/cartStore';
 import { checkoutOrder } from '@/app/table/actions';
+import { useTable } from '../TableContext';
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -13,7 +12,7 @@ interface Props {
 }
 
 export default function CartViewClient({ tableNumber }: Props) {
-  const router = useRouter();
+  const { setActiveView, setActiveTrackingToken, refreshOrders } = useTable();
   const { items, updateQuantity, updateNote, removeItem, clearCart } = useCartStore();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -91,7 +90,8 @@ export default function CartViewClient({ tableNumber }: Props) {
 
       toast.success('Pesanan berhasil dibuat!');
       clearCart();
-      router.push(`/table/${tableNumber}/tracking/${result.trackingToken}`);
+      await refreshOrders();
+      setActiveTrackingToken(result.trackingToken);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Gagal mengirimkan pesanan. Coba lagi.';
       toast.error(errorMessage);
@@ -104,12 +104,12 @@ export default function CartViewClient({ tableNumber }: Props) {
     <div className="min-h-screen bg-[#0F0F10] text-white flex flex-col font-sans pb-12">
       {/* Top Header */}
       <header className="sticky top-0 bg-[#0F0F10]/95 backdrop-blur-md border-b border-neutral-900 px-6 py-4 flex items-center gap-4 z-10">
-        <Link
-          href={`/table/${tableNumber}/menu`}
-          className="p-2 hover:bg-neutral-900 rounded-xl transition-colors text-neutral-400 hover:text-white"
+        <button
+          onClick={() => setActiveView('menu')}
+          className="p-2 hover:bg-neutral-900 rounded-xl transition-colors text-neutral-400 hover:text-white cursor-pointer"
         >
           <ArrowLeft size={20} />
-        </Link>
+        </button>
         <div>
           <h1 className="text-lg font-bold tracking-tight text-white">Keranjang Belanja</h1>
           <p className="text-xs text-neutral-400 mt-0.5">Meja {tableNumber}</p>
@@ -127,12 +127,12 @@ export default function CartViewClient({ tableNumber }: Props) {
               <h3 className="text-white font-bold text-lg">Keranjang Kosong</h3>
               <p className="text-neutral-400 text-xs mt-1">Belum ada menu yang ditambahkan ke keranjang Anda.</p>
             </div>
-            <Link
-              href={`/table/${tableNumber}/menu`}
-              className="bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-xs px-6 py-3 rounded-xl transition-colors shadow-md mt-2"
+            <button
+              onClick={() => setActiveView('menu')}
+              className="bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-xs px-6 py-3 rounded-xl transition-colors shadow-md mt-2 cursor-pointer"
             >
               Kembali ke Menu
-            </Link>
+            </button>
           </div>
         ) : (
           <form onSubmit={handleCheckout} className="space-y-6">
@@ -157,7 +157,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                           type="button"
                           aria-label={`Hapus ${item.productName}`}
                           onClick={() => removeItem(item.productId)}
-                          className="p-2 hover:bg-red-500/10 rounded-lg text-neutral-500 hover:text-red-400 transition-colors"
+                          className="p-2 hover:bg-red-500/10 rounded-lg text-neutral-500 hover:text-red-400 transition-colors cursor-pointer"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -166,7 +166,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                            className="w-7 h-7 rounded-md hover:bg-neutral-800 flex items-center justify-center text-neutral-400 transition-colors"
+                            className="w-7 h-7 rounded-md hover:bg-neutral-800 flex items-center justify-center text-neutral-400 transition-colors cursor-pointer"
                           >
                             <Minus size={12} />
                           </button>
@@ -176,7 +176,7 @@ export default function CartViewClient({ tableNumber }: Props) {
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                            className="w-7 h-7 rounded-md hover:bg-neutral-800 flex items-center justify-center text-neutral-400 transition-colors"
+                            className="w-7 h-7 rounded-md hover:bg-neutral-800 flex items-center justify-center text-neutral-400 transition-colors cursor-pointer"
                           >
                             <Plus size={12} />
                           </button>
@@ -273,7 +273,7 @@ export default function CartViewClient({ tableNumber }: Props) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#F59E0B] hover:bg-[#D97706] disabled:bg-neutral-800 disabled:text-neutral-500 text-black font-black py-4 px-6 rounded-2xl transition-all shadow-lg hover:shadow-amber-500/10 flex items-center justify-center gap-2"
+              className="w-full bg-[#F59E0B] hover:bg-[#D97706] disabled:bg-neutral-800 disabled:text-neutral-500 text-black font-black py-4 px-6 rounded-2xl transition-all shadow-lg hover:shadow-amber-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

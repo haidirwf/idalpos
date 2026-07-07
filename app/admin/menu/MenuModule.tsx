@@ -13,7 +13,8 @@ export default function MenuModule() {
   const handleCreateProductSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg(null);
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     const name = formData.get('name') as string;
     const category_id = formData.get('category_id') as string;
     const description = formData.get('description') as string || '';
@@ -34,7 +35,7 @@ export default function MenuModule() {
         display_order,
         is_featured,
       });
-      e.currentTarget.reset();
+      form.reset();
       await refreshData();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Gagal menambahkan produk');
@@ -58,14 +59,15 @@ export default function MenuModule() {
   const handleCreateCategorySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg(null);
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     const name = formData.get('name') as string;
     const icon = formData.get('icon') as string;
     const sortOrder = parseInt(formData.get('sort_order') as string || '0', 10);
 
     try {
       await createCategory(name, icon, sortOrder);
-      e.currentTarget.reset();
+      form.reset();
       await refreshData();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Gagal menambahkan kategori');
