@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { logout } from '@/app/login/actions';
-import { Grid, Utensils, Tablet, LogOut } from 'lucide-react';
+import { Grid, Utensils, Tablet, LogOut, ShoppingBag, TrendingUp } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -29,11 +29,11 @@ export default function AdminLayout({
           {/* Nav Links */}
           <nav className="space-y-1">
             <Link
-              href="/admin/categories"
+              href="/admin/orders"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
             >
-              <Grid size={18} className="text-amber-500" />
-              <span>Categories</span>
+              <ShoppingBag size={18} className="text-amber-500" />
+              <span>Orders Pipeline</span>
             </Link>
             <Link
               href="/admin/menu"
@@ -43,11 +43,25 @@ export default function AdminLayout({
               <span>Menu / Products</span>
             </Link>
             <Link
+              href="/admin/categories"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
+            >
+              <Grid size={18} className="text-amber-500" />
+              <span>Categories</span>
+            </Link>
+            <Link
               href="/admin/tables"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
             >
               <Tablet size={18} className="text-amber-500" />
               <span>Tables & QR Codes</span>
+            </Link>
+            <Link
+              href="/admin/reports"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
+            >
+              <TrendingUp size={18} className="text-amber-500" />
+              <span>Laporan Penjualan</span>
             </Link>
           </nav>
         </div>
