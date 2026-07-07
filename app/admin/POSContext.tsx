@@ -43,6 +43,13 @@ export interface OrderCard {
   tables?: { number: string } | null;
   created_at?: string;
   paid_at?: string;
+  order_items?: {
+    id: string;
+    product_name: string;
+    quantity: number;
+    price: number;
+    note?: string | null;
+  }[];
 }
 
 interface POSContextType {
@@ -99,7 +106,7 @@ export function POSProvider({ children }: { children: React.ReactNode }) {
         supabase.from('categories').select('*').order('sort_order'),
         supabase.from('products').select('*, categories ( name )').order('display_order'),
         supabase.from('orders').select('id, order_number, customer_name, notes, total, status, payment_status, tables(number), created_at').neq('status', 'paid').order('created_at', { ascending: true }),
-        supabase.from('orders').select('id, order_number, customer_name, total, paid_at, tables(number)').eq('status', 'paid').order('paid_at', { ascending: false })
+        supabase.from('orders').select('id, order_number, customer_name, notes, total, paid_at, tables(number), order_items(id, product_name, quantity, price, note)').eq('status', 'paid').order('paid_at', { ascending: false })
       ]);
 
       if (tablesRes.data) setTables(tablesRes.data as Table[]);
