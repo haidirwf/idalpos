@@ -1,9 +1,14 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { isRedirectError } from 'next/navigation';
 import { login } from './actions';
 import { Mail, Lock, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+
+function isRedirectError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const digest = (error as { digest?: string }).digest;
+  return typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT');
+}
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
