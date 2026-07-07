@@ -4,12 +4,14 @@ import {
   deleteCategory,
   createProduct,
   deleteProduct,
+  updateProduct,
   createTable,
   deleteTable
 } from './admin';
 
 const mockInsert = vi.fn();
 const mockDelete = vi.fn();
+const mockUpdate = vi.fn();
 const mockGetUser = vi.fn().mockResolvedValue({
   data: { user: { id: 'mock-user-id' } },
   error: null
@@ -27,6 +29,11 @@ vi.mock('@/lib/supabase/server', () => ({
       delete: () => ({
         eq: async (column: string, value: unknown) => {
           return mockDelete(table, column, value);
+        }
+      }),
+      update: (row: unknown) => ({
+        eq: async (column: string, value: unknown) => {
+          return mockUpdate(table, row, column, value);
         }
       })
     })
@@ -201,6 +208,39 @@ describe('Admin CRUD Actions', () => {
       expect(res.success).toBe(false);
       expect(res.error).toBe('Unauthorized');
       expect(mockDelete).not.toHaveBeenCalled();
+    });
+
+    it('successfully updates product', async () => {
+      mockUpdate.mockResolvedValueOnce({ error: null });
+      const updatedData = {
+        name: 'New Name',
+        category_id: 'cat-123',
+        description: 'New desc',
+        price: 20000,
+        image_url: 'http://img2.url',
+        available: false,
+        display_order: 1,
+        is_featured: false,
+      };
+      const res = await updateProduct('prod-123', updatedData);
+      expect(res.success).toBe(true);
+      expect(mockUpdate).toHaveBeenCalledWith('products', updatedData, 'id', 'prod-123');
+    });
+
+    it('rejects updateProduct if id is missing', async () => {
+      const res = await updateProduct('', {
+        name: 'Name',
+        category_id: 'cat-123',
+        description: '',
+        price: 100,
+        image_url: '',
+        available: true,
+        display_order: 1,
+        is_featured: false,
+      });
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('ID is required');
+      expect(mockUpdate).not.toHaveBeenCalled();
     });
   });
 

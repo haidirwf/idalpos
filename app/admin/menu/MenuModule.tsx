@@ -1,14 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createProduct, deleteProduct, createCategory, deleteCategory } from '@/lib/actions/admin';
-import { Utensils, Plus, Check, X, Star, Grid } from 'lucide-react';
-import { usePOS } from '../POSContext';
+import { createProduct, deleteProduct, updateProduct, createCategory, deleteCategory } from '@/lib/actions/admin';
+import { Utensils, Plus, Check, X, Star, Grid, Edit, AlertCircle, Loader2 } from 'lucide-react';
+import { usePOS, Product } from '../POSContext';
 import { SubmitButton, DeleteIconButton } from '@/components/SubmitButton';
 
 export default function MenuModule() {
   const { categories, products, activeTab, setActiveTab, refreshData } = usePOS();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editErrorMsg, setEditErrorMsg] = useState<string | null>(null);
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
 
   const handleCreateProductSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,6 +42,42 @@ export default function MenuModule() {
       setErrorMsg(result.error || 'Gagal menambahkan produk');
     } else {
       form.reset();
+      await refreshData();
+    }
+  };
+
+  const handleUpdateProductSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setEditErrorMsg(null);
+    if (!editingProduct) return;
+
+    setIsEditSubmitting(true);
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const category_id = formData.get('category_id') as string;
+    const description = formData.get('description') as string || '';
+    const price = parseFloat(formData.get('price') as string || '0');
+    const image_url = formData.get('image_url') as string || '';
+    const available = formData.get('available') === 'true';
+    const display_order = parseInt(formData.get('display_order') as string || '0', 10);
+    const is_featured = formData.get('is_featured') === 'true';
+
+    const result = await updateProduct(editingProduct.id, {
+      name,
+      category_id,
+      description,
+      price,
+      image_url,
+      available,
+      display_order,
+      is_featured,
+    });
+
+    setIsEditSubmitting(false);
+    if (result && !result.success) {
+      setEditErrorMsg(result.error || 'Gagal memperbarui produk');
+    } else {
+      setEditingProduct(null);
       await refreshData();
     }
   };
@@ -336,10 +375,23 @@ export default function MenuModule() {
                             Urutan: {p.display_order}
                           </span>
 
-                          <form onSubmit={handleDeleteProductSubmit}>
-                            <input type="hidden" name="id" value={p.id} />
-                            <DeleteIconButton title="Hapus Produk" />
-                          </form>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingProduct(p);
+                                setEditErrorMsg(null);
+                              }}
+                              className="p-2 hover:bg-neutral-800 rounded-lg text-neutral-450 hover:text-white transition-all cursor-pointer"
+                              title="Edit Produk"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <form onSubmit={handleDeleteProductSubmit}>
+                              <input type="hidden" name="id" value={p.id} />
+                              <DeleteIconButton title="Hapus Produk" />
+                            </form>
+                          </div>
                         </div>
                       </div>
                     );
@@ -447,6 +499,182 @@ export default function MenuModule() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-[#141415] border border-neutral-800 rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setEditingProduct(null)}
+              className="absolute right-6 top-6 p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-xl transition-all cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <h3 className="text-xl font-extrabold text-white mb-6 flex items-center gap-2.5">
+              <Edit className="text-amber-500" />
+              <span>Edit Produk</span>
+            </h3>
+
+            {editErrorMsg && (
+              <div className="mb-6 flex items-start gap-3 bg-red-500/10 border border-red-500/20 text-red-200 p-4 rounded-xl text-sm animate-in fade-in duration-200">
+                <AlertCircle className="w-5 h-5 shrink-0 text-red-455 animate-pulse" />
+                <div>
+                  <p className="font-semibold text-red-450">Gagal Memperbarui</p>
+                  <p className="mt-0.5 text-neutral-350">{editErrorMsg}</p>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateProductSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label htmlFor="edit-name" className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                  Nama Produk
+                </label>
+                <input
+                  id="edit-name"
+                  type="text"
+                  name="name"
+                  defaultValue={editingProduct.name}
+                  required
+                  className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="edit-category_id" className="block text-xs font-semibold text-neutral-450 uppercase tracking-wider">
+                  Kategori
+                </label>
+                <select
+                  id="edit-category_id"
+                  name="category_id"
+                  defaultValue={editingProduct.category_id || ''}
+                  required
+                  className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm cursor-pointer"
+                >
+                  <option value="" className="text-neutral-500">Pilih Kategori</option>
+                  {categories?.map((cat) => (
+                    <option key={cat.id} value={cat.id} className="text-white bg-[#141415]">
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="edit-description" className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                  Deskripsi
+                </label>
+                <textarea
+                  id="edit-description"
+                  name="description"
+                  rows={2}
+                  defaultValue={editingProduct.description || ''}
+                  className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="edit-price" className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                    Harga (Rupiah)
+                  </label>
+                  <input
+                    id="edit-price"
+                    type="number"
+                    name="price"
+                    min="0"
+                    step="500"
+                    defaultValue={editingProduct.price}
+                    required
+                    className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="edit-display_order" className="block text-xs font-semibold text-neutral-450 uppercase tracking-wider">
+                    Urutan
+                  </label>
+                  <input
+                    id="edit-display_order"
+                    type="number"
+                    name="display_order"
+                    defaultValue={editingProduct.display_order}
+                    className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="edit-image_url" className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                  URL Gambar (Opsional)
+                </label>
+                <input
+                  id="edit-image_url"
+                  type="url"
+                  name="image_url"
+                  defaultValue={editingProduct.image_url || ''}
+                  className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <span className="block text-xs font-semibold text-neutral-450 uppercase tracking-wider">
+                    Tersedia
+                  </span>
+                  <select
+                    name="available"
+                    defaultValue={editingProduct.available ? 'true' : 'false'}
+                    className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm cursor-pointer"
+                  >
+                    <option value="true" className="text-white bg-[#141415]">Ya</option>
+                    <option value="false" className="text-white bg-[#141415]">Tidak</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <span className="block text-xs font-semibold text-neutral-450 uppercase tracking-wider">
+                    Best Seller
+                  </span>
+                  <select
+                    name="is_featured"
+                    defaultValue={editingProduct.is_featured ? 'true' : 'false'}
+                    className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm cursor-pointer"
+                  >
+                    <option value="false" className="text-white bg-[#141415]">Tidak</option>
+                    <option value="true" className="text-white bg-[#141415]">Ya</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingProduct(null)}
+                  className="flex-1 bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white font-bold py-3 px-6 rounded-xl transition-all cursor-pointer text-center text-sm"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditSubmitting}
+                  className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-neutral-800 disabled:text-neutral-500 text-black font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-amber-500/10 flex items-center justify-center gap-2 cursor-pointer text-sm"
+                >
+                  {isEditSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <span>Simpan Perubahan</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

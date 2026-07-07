@@ -124,6 +124,56 @@ export async function deleteProduct(id: string) {
   }
 }
 
+export async function updateProduct(id: string, data: {
+  name: string;
+  category_id: string;
+  description: string;
+  price: number;
+  image_url: string;
+  available: boolean;
+  display_order: number;
+  is_featured: boolean;
+}) {
+  if (!id) {
+    return { success: false, error: 'ID is required' };
+  }
+  if (!data.name || data.name.trim() === '') {
+    return { success: false, error: 'Name is required' };
+  }
+  if (!data.category_id) {
+    return { success: false, error: 'Category ID is required' };
+  }
+  if (data.price < 0) {
+    return { success: false, error: 'Price must be greater than or equal to 0' };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase.from('products').update({
+      name: data.name,
+      category_id: data.category_id,
+      description: data.description,
+      price: data.price,
+      image_url: data.image_url,
+      available: data.available,
+      display_order: data.display_order,
+      is_featured: data.is_featured,
+    }).eq('id', id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    revalidatePath('/admin/menu');
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Gagal memperbarui produk';
+    return { success: false, error: msg };
+  }
+}
+
 // Table Actions
 export async function createTable(number: string) {
   if (!number || number.trim() === '') {
