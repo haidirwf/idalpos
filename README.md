@@ -1,113 +1,113 @@
 # IDAL POS 🍴
 
-**IDAL POS** adalah sistem pemesanan meja mandiri berbasis QR-Code (Self-Ordering) dan dashboard Point of Sale (POS) admin terpadu yang dirancang menggunakan Next.js 15, React 19, dan Supabase. Sistem ini memberikan pengalaman pemesanan mandiri yang super cepat (*instant & seamless*) bagi pelanggan, serta pipeline manajemen pesanan yang andal bagi restoran.
+**IDAL POS** is a modern QR-Code based self-ordering system and integrated Point of Sale (POS) administration dashboard built with Next.js 15, React 19, and Supabase. It offers an instant, seamless self-ordering experience for customers, and a highly responsive, real-time pipeline management system for restaurant staff.
 
 ---
 
-## 🌟 Fitur Utama
+## 🌟 Key Features
 
-### Sisi Pelanggan (Customer Self-Ordering)
-1. **Pindai QR Meja (Client-Side Scanner):** Scanner kamera bawaan di web menggunakan `html5-qrcode` untuk memindai kode QR meja secara langsung tanpa aplikasi tambahan.
-2. **Menu Dinamis & Responsif:** Pemilihan hidangan, filter kategori cepat, pencarian menu, dan penambahan catatan kustom (contoh: *pedas*, *es sedikit*). Dioptimalkan dengan `useMemo` untuk performa interaksi 0ms.
-3. **Keranjang Belanja Lokal (Cart Store):** Manajemen item keranjang belanja menggunakan state manager `Zustand` yang terpersistensi di browser.
-4. **Panel "Pesanan Saya" (My Orders):** Panel collapsible (bottom sheet drawer) di halaman menu untuk melihat daftar pesanan aktif di meja tersebut dan memantau statusnya secara realtime.
-5. **Timeline Pelacakan Live (Live Tracking):** Halaman linimasa vertikal interaktif yang terhubung langsung ke database lewat Supabase Realtime Subscription untuk memantau status makanan (*Menunggu -> Diterima -> Dimasak -> Siap -> Disajikan*).
+### Customer Self-Ordering (Table Side)
+1. **Client-Side QR Scanner:** Built-in web camera scanner using `html5-qrcode` to scan table QR codes directly on the mobile browser without requiring external app downloads.
+2. **Dynamic & Responsive Menu:** Clean dishes list, fast category filtering, product search, and custom item note inputs (e.g., *extra spicy*, *less ice*). Highly optimized with `useMemo` for a 0ms lag-free mobile typing experience.
+3. **Local Shopping Cart:** Persistent client-side cart management powered by `Zustand`.
+4. **"My Orders" Live Panel:** Collapsible bottom-sheet drawer on the menu page allowing customers to view active order tickets for their table and track cooking stages.
+5. **Real-time Tracking Timeline:** Interactive vertical status timeline connecting directly to the Supabase database via WebSockets (*Pending -> Accepted -> Cooking -> Ready -> Served*).
 
-### Sisi Administrasi (Admin POS Dashboard)
-1. **Orders POS Pipeline (Kanban Board):** Manajemen pesanan dalam bentuk papan Kanban 5 kolom (*Menunggu, Diterima, Dimasak, Siap, Disajikan*). Dilengkapi dengan transisi kartu instan (*0ms latency*) dan notifikasi suara (chime) otomatis ketika ada pesanan baru masuk.
-2. **Unifikasi Pengelolaan Menu & Kategori:** Manajemen produk hidangan (CRUD) dan kategori disatukan dalam satu halaman tabbed terpadu di `/admin/menu` untuk menghemat ruang navigasi.
-3. **Laporan Penjualan (Daily Sales Report):** Ringkasan keuangan harian, jumlah pesanan, nilai transaksi rata-rata, dan tabel histori transaksi lunas yang diperbarui secara langsung.
-4. **Manajemen Meja & Cetak QR:** CRUD meja restoran dan generate otomatis QR Code Meja yang terintegrasi dengan URL pemesanan mandiri.
-5. **Keamanan Rute (Edge Middleware):** Proteksi halaman admin (`/admin/*`) menggunakan Next.js Middleware dan `@supabase/ssr` berbasis cookie session.
+### Administration POS Dashboard
+1. **Orders POS Pipeline (Kanban Board):** Live drag-and-drop or click-action Kanban board with 5 columns (*Pending, Accepted, Cooking, Ready, Served*). Features instant card transitions (*0ms latency*) and automatic audio chime notifications on incoming orders.
+2. **Unified Menu & Category Management:** Tabbed control panel at `/admin/menu` consolidating both dish CRUD and food categories under a single page to streamline layouts.
+3. **Daily Sales Reports:** Real-time metrics overview displaying daily gross revenue, total completed tickets, average order value, and transactional invoice history tables.
+4. **Table & QR Code Manager:** CRUD for restaurant tables generating dynamic QR codes mapped directly to self-ordering table landing routes.
+5. **Edge Session Middleware:** Route protection for `/admin/*` pages secured using cookie-based session verification via Next.js Middleware and `@supabase/ssr`.
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Framework Utama:** [Next.js 15 (App Router)](https://nextjs.org/) & [React 19](https://react.dev/)
-* **Styling & UI:** Vanilla CSS & [Tailwind CSS v4](https://tailwindcss.com/)
-* **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL, Realtime Channel, Supabase SSR Auth)
+* **Core Framework:** [Next.js 15 (App Router)](https://nextjs.org/) & [React 19](https://react.dev/)
+* **Styling & UI:** [Tailwind CSS v4](https://tailwindcss.com/)
+* **Database & Realtime:** [Supabase](https://supabase.com/) (PostgreSQL, Realtime WebSockets, Supabase SSR Auth)
 * **Icons:** [Lucide React](https://lucide.dev/)
 * **State Management:** [Zustand](https://github.com/pmndrs/zustand)
-* **Testing Suite:** [Vitest](https://vitest.dev/) & [React Testing Library](https://testing-library.com/) (69 Tests Passed)
-* **Client-Side Scanner:** [html5-qrcode](https://github.com/mebjas/html5-qrcode)
+* **Testing Suite:** [Vitest](https://vitest.dev/) & [React Testing Library](https://testing-library.com/) (69 Tests Passing)
+* **Camera Scanning:** [html5-qrcode](https://github.com/mebjas/html5-qrcode)
 
 ---
 
-## 🚀 Memulai Instalasi Lokal
+## 🚀 Getting Started (Local Setup)
 
-### 1. Prasyarat
-Pastikan Anda telah menginstal **Node.js (v18+)** dan memiliki akun **Supabase**.
+### 1. Prerequisites
+Ensure you have **Node.js (v18+)** installed and an active **Supabase** project database.
 
-### 2. Kloning Repositori
+### 2. Clone the Repository
 ```bash
 git clone https://github.com/haidirwf/idalpos.git
 cd idalpos
 ```
 
-### 3. Konfigurasi Environment Variables
-Buat file bernama `.env.local` di direktori root proyek dan masukkan kredensial Supabase Anda:
+### 3. Configure Environment Variables
+Create a `.env.local` file in the root folder and configure your Supabase API credentials:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://proyek-anda.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-### 4. Migrasi Database Supabase
-Jalankan skrip migrasi SQL yang berada di dalam folder `supabase/migrations/` ke SQL Editor di dashboard Supabase Anda:
-* [schema.sql](file:///home/idal/sekolajh/idalpos/supabase/migrations/schema.sql): Membuat skema tabel (`tables`, `categories`, `products`, `orders`, `order_items`) beserta kebijakan RLS (Row Level Security).
+### 4. Database Migrations
+Run the SQL migration script located in the `supabase/migrations/` directory inside your Supabase SQL Editor:
+* [schema.sql](file:///home/idal/sekolajh/idalpos/supabase/migrations/schema.sql): Sets up tables (`tables`, `categories`, `products`, `orders`, `order_items`) along with Row Level Security (RLS) policies.
 
-### 5. Jalankan Halaman Development
-Instal dependensi dan jalankan server pengembangan lokal:
+### 5. Start the Development Server
+Install npm dependencies and launch the dev server:
 ```bash
 npm install
 npm run dev
 ```
-Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
+Open [http://localhost:3000](http://localhost:3000) in your web browser.
 
 ---
 
-## 🧪 Menjalankan Pengujian (Testing)
+## 🧪 Running Unit Tests
 
-Proyek ini dilengkapi dengan 69 unit & integration tests yang memvalidasi server actions, store keranjang belanja, Next.js middleware, dan fungsionalitas rendering komponen.
+This project includes 69 unit & integration tests validating server actions, cart store states, router middleware, and client component rendering behaviors.
 
-Untuk menjalankan suite pengujian:
+To run the test suite:
 ```bash
-# Menjalankan test dalam mode watch
+# Run tests in hot-reload watch mode
 npm run test
 
-# Menjalankan test sekali jalan (CI mode)
+# Run tests once (CI mode)
 npm run test:run
 ```
 
 ---
 
-## ☁️ Panduan Deploy Vercel
+## ☁️ Vercel Deployment
 
-1. Hubungkan repositori GitHub `haidirwf/idalpos` Anda ke **Vercel**.
-2. Di bagian **Environment Variables** proyek Vercel, masukkan dua kunci berikut:
+1. Connect your GitHub repository `haidirwf/idalpos` to your **Vercel** account.
+2. In the Vercel Project Settings, navigate to **Environment Variables** and add the following keys:
    * `NEXT_PUBLIC_SUPABASE_URL`
    * `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. Klik **Deploy**. Variabel ini akan otomatis diinjeksi saat Next.js membangun static & dynamic pages di server Vercel.
+3. Click **Deploy**. Vercel will automatically load these environment variables to build static and server-rendered routes successfully.
 
 ---
 
-## 📂 Struktur Direktori Penting
+## 📂 Project Directory Structure
 
 ```txt
 ├── app/
-│   ├── admin/                # Rute Admin (Orders, Menu, Tables, Laporan)
-│   ├── login/                # Halaman Login Admin & Auth Actions
-│   ├── table/                # Rute Pelanggan (Menu, Keranjang, Live Tracker)
-│   └── page.tsx              # Portal Utama POS (Pindai QR)
+│   ├── admin/                # Admin Panel Routes (Orders, Menu, Tables, Reports)
+│   ├── login/                # Admin Login Form & Auth Actions
+│   ├── table/                # Table Side Client Routes (Menu, Cart, Live Tracker)
+│   └── page.tsx              # Portal Home Screen (Scan QR)
 ├── components/
-│   └── customer/             # Komponen Pelanggan (QR Scanner Modal, Alert Status)
+│   └── customer/             # Table-side UI Components (Scanner modal, Alert status)
 ├── lib/
-│   ├── actions/              # Server Actions (Mutasi DB Admin & Orders)
-│   ├── store/                # Zustand Cart Store
-│   └── supabase/             # Inisialisasi Klien SSR & Browser Supabase
+│   ├── actions/              # Server Actions (Admin CRUD & POS order mutations)
+│   ├── store/                # Zustand Cart Store state
+│   └── supabase/             # SSR Client & Browser client initializations
 ├── supabase/
-│   └── migrations/           # Skema Migrasi Database PostgreSQL
+│   └── migrations/           # PostgreSQL Database Schema Migrations
 ```
 
 ---
-Dibuat dengan 🍴 dan dedikasi untuk industri F&B modern.
+Made with 🍴 and dedication to the modern F&B industry.
