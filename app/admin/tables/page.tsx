@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createTable, deleteTable } from '@/lib/actions/admin';
 import { Tablet, Plus, Trash2, ExternalLink, Download } from 'lucide-react';
 import { redirect } from 'next/navigation';
+import Image from 'next/image';
 
 export default async function TablesPage({
   searchParams,
@@ -118,10 +119,12 @@ export default async function TablesPage({
                       {/* QR Code Container */}
                       <div className="w-24 h-24 shrink-0 bg-white p-1.5 rounded-xl border border-neutral-800 flex items-center justify-center relative overflow-hidden group-hover:scale-[1.02] transition-transform">
                         {t.qr_code_url ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
+                          <Image
                             src={t.qr_code_url}
                             alt={`QR Code Table ${t.number}`}
+                            width={96}
+                            height={96}
+                            unoptimized
                             className="w-full h-full object-contain"
                           />
                         ) : (

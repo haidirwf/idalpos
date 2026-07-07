@@ -1,8 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCartStore } from '@/lib/store/cartStore';
 import { Search, Plus, Minus, ShoppingCart, Utensils, Coffee, Cookie } from 'lucide-react';
 
@@ -167,9 +167,12 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                     <div className="flex gap-4">
                       {/* Product Image Fallback */}
                       {product.image_url ? (
-                        <img
+                        <Image
                           src={product.image_url}
                           alt={product.name}
+                          width={80}
+                          height={80}
+                          unoptimized
                           className="w-20 h-20 object-cover rounded-2xl shrink-0 border border-neutral-800 bg-neutral-900"
                         />
                       ) : (
