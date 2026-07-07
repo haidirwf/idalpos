@@ -55,7 +55,7 @@ export default function OrderTrackingPage() {
     const supabase = createClient();
     async function fetchOrder() {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('orders')
           .select('order_number, status, total')
           .eq('tracking_token', trackingToken)
@@ -76,7 +76,7 @@ export default function OrderTrackingPage() {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'orders', filter: `tracking_token=eq.${trackingToken}` },
-        (payload: any) => {
+        (payload: { new: { status: string } }) => {
           setOrder((prev) => (prev ? { ...prev, status: payload.new.status } : null));
         }
       )

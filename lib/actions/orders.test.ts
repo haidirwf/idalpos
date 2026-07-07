@@ -7,10 +7,10 @@ const mockEq = vi.fn();
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
     from: () => ({
-      update: (val: any) => {
+      update: (val: Record<string, unknown>) => {
         mockUpdate(val);
         return {
-          eq: async (col: string, val2: any) => {
+          eq: async (col: string, val2: string) => {
             mockEq(col, val2);
             return { error: null };
           },
