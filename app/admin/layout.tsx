@@ -35,19 +35,19 @@ export default function AdminLayout({
               <ShoppingBag size={18} className="text-amber-500" />
               <span>Orders Pipeline</span>
             </Link>
-            <Link
-              href="/admin/menu"
+             <Link
+              href="/admin/menu?tab=products"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
             >
               <Utensils size={18} className="text-amber-500" />
-              <span>Menu / Products</span>
+              <span>Menu / Produk</span>
             </Link>
             <Link
-              href="/admin/categories"
+              href="/admin/menu?tab=categories"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/30 hover:border-neutral-700/50 border border-transparent transition-all font-semibold text-sm"
             >
               <Grid size={18} className="text-amber-500" />
-              <span>Categories</span>
+              <span>Kategori</span>
             </Link>
             <Link
               href="/admin/tables"

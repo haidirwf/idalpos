@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/lib/store/cartStore';
@@ -49,19 +49,24 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
   }, []);
 
   // Filter products based on search and category
-  const filteredProducts = products.filter((product) => {
-    const matchesCategory =
-      selectedCategoryId === 'all' || product.category_id === selectedCategoryId;
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.description &&
-        product.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesCategory =
+        selectedCategoryId === 'all' || product.category_id === selectedCategoryId;
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.description &&
+          product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, selectedCategoryId, searchQuery]);
 
   // Calculate cart summary
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const { totalItems, totalPrice } = useMemo(() => {
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return { totalItems, totalPrice };
+  }, [items]);
 
   const getCartItem = (productId: string) => {
     if (!isMounted) return null;
@@ -96,7 +101,7 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari makanan atau minuman..."
-            className="w-full bg-[#18181B] border border-neutral-850 rounded-2xl pl-10 pr-4 py-3.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
+            className="w-full bg-[#18181B] border border-neutral-800 rounded-2xl pl-10 pr-4 py-3.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner"
           />
         </div>
 
@@ -109,7 +114,7 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
               className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                 selectedCategoryId === 'all'
                   ? 'bg-amber-500 text-black border-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)]'
-                  : 'bg-[#18181B] text-neutral-300 border-neutral-850 hover:bg-[#202023] hover:text-white'
+                  : 'bg-[#18181B] text-neutral-300 border-neutral-800 hover:bg-[#202023] hover:text-white'
               }`}
             >
               <Utensils size={14} />
@@ -125,7 +130,7 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                   className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                     selectedCategoryId === cat.id
                       ? 'bg-amber-500 text-black border-amber-500 shadow-[0_4px_12px_rgba(245,158,11,0.2)]'
-                      : 'bg-[#18181B] text-neutral-300 border-neutral-850 hover:bg-[#202023] hover:text-white'
+                      : 'bg-[#18181B] text-neutral-300 border-neutral-800 hover:bg-[#202023] hover:text-white'
                   }`}
                 >
                   <IconComponent size={14} />
@@ -145,7 +150,7 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-12 bg-[#18181B] border border-neutral-850 rounded-3xl p-6">
+            <div className="text-center py-12 bg-[#18181B] border border-neutral-800 rounded-2xl p-6">
               <span className="text-4xl">🔍</span>
               <h4 className="text-white font-bold mt-4">Menu Tidak Ditemukan</h4>
               <p className="text-neutral-400 text-xs mt-1">Coba gunakan kata kunci pencarian yang lain.</p>
@@ -158,10 +163,10 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                 return (
                   <div
                     key={product.id}
-                    className={`bg-[#18181B] border rounded-3xl p-4 transition-all duration-300 ${
+                    className={`bg-[#18181B] border rounded-2xl p-4 transition-all duration-300 ${
                       cartItem
                         ? 'border-amber-500/40 bg-amber-500/[0.02] shadow-[0_4px_20px_rgba(245,158,11,0.03)]'
-                        : 'border-neutral-850 hover:border-neutral-800'
+                        : 'border-neutral-800 hover:border-neutral-700/60'
                     }`}
                   >
                     <div className="flex gap-4">
@@ -176,7 +181,7 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                           className="w-20 h-20 object-cover rounded-2xl shrink-0 border border-neutral-800 bg-neutral-900"
                         />
                       ) : (
-                        <div className="w-20 h-20 bg-neutral-900 border border-neutral-850 rounded-2xl flex items-center justify-center shrink-0 text-neutral-500">
+                        <div className="w-20 h-20 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center shrink-0 text-neutral-500">
                           <Utensils size={28} />
                         </div>
                       )}
@@ -248,13 +253,13 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
 
                     {/* Inline Note Input if in Cart */}
                     {cartItem && (
-                      <div className="mt-3.5 pt-3.5 border-t border-neutral-850/60 animate-in slide-in-from-top-1 duration-200">
+                      <div className="mt-3.5 pt-3.5 border-t border-neutral-800/60 animate-in slide-in-from-top-1 duration-200">
                         <input
                           type="text"
                           value={cartItem.note}
                           onChange={(e) => updateNote(product.id, e.target.value)}
                           placeholder="Tambah catatan (contoh: pedas, es sedikit)..."
-                          className="w-full bg-[#0F0F10] border border-neutral-850 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                          className="w-full bg-[#0F0F10] border border-neutral-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
                         />
                       </div>
                     )}
