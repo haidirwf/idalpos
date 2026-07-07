@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
+import { isRedirectError } from 'next/navigation';
 import { login } from './actions';
 import { Mail, Lock, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 
@@ -16,12 +17,12 @@ export default function LoginPage() {
     startTransition(async () => {
       try {
         await login(formData);
-      } catch (err: any) {
-        // Re-throw redirect errors so Next.js handles navigation correctly
-        if (err.digest?.includes('NEXT_REDIRECT') || err.message?.includes('NEXT_REDIRECT')) {
+      } catch (err) {
+        if (isRedirectError(err)) {
           throw err;
         }
-        setError(err.message || 'Invalid email or password');
+        const message = err instanceof Error ? err.message : 'Invalid email or password';
+        setError(message);
       }
     });
   };
@@ -57,7 +58,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-neutral-300">
+            <label htmlFor="email" className="block text-sm font-semibold text-neutral-300">
               Email Address
             </label>
             <div className="relative">
@@ -65,6 +66,7 @@ export default function LoginPage() {
                 <Mail className="w-5 h-5" />
               </span>
               <input
+                id="email"
                 type="email"
                 name="email"
                 required
@@ -76,7 +78,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-neutral-300">
+            <label htmlFor="password" className="block text-sm font-semibold text-neutral-300">
               Password
             </label>
             <div className="relative">
@@ -84,6 +86,7 @@ export default function LoginPage() {
                 <Lock className="w-5 h-5" />
               </span>
               <input
+                id="password"
                 type="password"
                 name="password"
                 required
@@ -95,6 +98,7 @@ export default function LoginPage() {
           </div>
 
           <button
+            id="login-submit-button"
             type="submit"
             disabled={isPending}
             className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg hover:shadow-amber-500/10 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2"
