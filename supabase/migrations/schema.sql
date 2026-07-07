@@ -67,6 +67,20 @@ CREATE TABLE orders (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Trigger to automatically update updated_at on orders
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = timezone('utc'::text, now());
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_orders_updated_at
+BEFORE UPDATE ON orders
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
 -- 5. Order Items
 CREATE TABLE order_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -84,6 +98,7 @@ CREATE INDEX idx_products_category_id ON products(category_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orders_tracking_token ON orders(tracking_token);
 CREATE INDEX idx_orders_table_id ON orders(table_id);
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 
 -- Enable RLS
 ALTER TABLE tables ENABLE ROW LEVEL SECURITY;
@@ -103,14 +118,15 @@ CREATE POLICY "Allow admin all categories" ON categories FOR ALL TO authenticate
 CREATE POLICY "Allow public read products" ON products FOR SELECT TO public USING (true);
 CREATE POLICY "Allow admin all products" ON products FOR ALL TO authenticated USING (true);
 
--- Orders: public can insert, read if matches tracking_token, admin can do all
+-- Orders: public can insert, read, admin can do all
+-- NOTE: The public select policy remains open (USING true) on orders to allow Supabase Realtime broadcast to function.
 CREATE POLICY "Allow public insert orders" ON orders FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Allow public select orders via tracking token" ON orders FOR SELECT TO public USING (true);
 CREATE POLICY "Allow admin all orders" ON orders FOR ALL TO authenticated USING (true);
 
 -- Order Items: public can insert, read, admin can do all
 CREATE POLICY "Allow public insert order_items" ON order_items FOR INSERT TO public WITH CHECK (true);
-CREATE POLICY "Allow public select order_items" ON order_items FOR SELECT TO public USING (true);
+CREATE POLICY "Allow public select order_items" ON order_items FOR SELECT TO public USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id));
 CREATE POLICY "Allow admin all order_items" ON order_items FOR ALL TO authenticated USING (true);
 
 -- Seed initial data
