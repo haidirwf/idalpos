@@ -1,8 +1,9 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { createTable, deleteTable } from '@/lib/actions/admin';
-import { Tablet, Plus, Trash2, ExternalLink, Download } from 'lucide-react';
+import { Tablet, Plus, ExternalLink, Download } from 'lucide-react';
 import { redirect } from 'next/navigation';
+import { SubmitButton, DeleteIconButton } from '@/components/SubmitButton';
 
 export default async function TablesPage({
   searchParams,
@@ -89,13 +90,7 @@ export default async function TablesPage({
               </p>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-amber-500/10 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer mt-2 text-sm"
-            >
-              <span>Add Table</span>
-              <Plus size={16} />
-            </button>
+            <SubmitButton label="Add Table" icon={<Plus size={16} />} />
           </form>
         </div>
 
@@ -181,13 +176,7 @@ export default async function TablesPage({
 
                       <form action={handleDelete}>
                         <input type="hidden" name="id" value={t.id} />
-                        <button
-                          type="submit"
-                          className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-lg transition-all cursor-pointer"
-                          title="Delete Table"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        <DeleteIconButton title="Delete Table" />
                       </form>
                     </div>
                   </div>

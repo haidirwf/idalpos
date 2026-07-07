@@ -1,9 +1,10 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { createProduct, deleteProduct, createCategory, deleteCategory } from '@/lib/actions/admin';
-import { Utensils, Plus, Trash2, Check, X, Star, Grid } from 'lucide-react';
+import { Utensils, Plus, Check, X, Star, Grid } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { SubmitButton, DeleteIconButton } from '@/components/SubmitButton';
 
 export default async function MenuPage({
   searchParams,
@@ -275,13 +276,7 @@ export default async function MenuPage({
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-amber-500/10 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer mt-4 text-sm"
-              >
-                <span>Tambah Produk</span>
-                <Plus size={16} />
-              </button>
+              <SubmitButton label="Tambah Produk" icon={<Plus size={16} />} />
             </form>
           </div>
 
@@ -350,13 +345,7 @@ export default async function MenuPage({
 
                           <form action={handleDeleteProduct}>
                             <input type="hidden" name="id" value={p.id} />
-                            <button
-                              type="submit"
-                              className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-lg transition-all cursor-pointer"
-                              title="Hapus Produk"
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                             <DeleteIconButton title="Hapus Produk" />
                           </form>
                         </div>
                       </div>
@@ -421,13 +410,7 @@ export default async function MenuPage({
                 />
               </div>
 
-              <button
-                type="submit"
-                className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-amber-500/10 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer mt-4 text-sm"
-              >
-                <span>Tambah Kategori</span>
-                <Plus size={16} />
-              </button>
+              <SubmitButton label="Tambah Kategori" icon={<Plus size={16} />} />
             </form>
           </div>
 
@@ -463,13 +446,7 @@ export default async function MenuPage({
                       <div className="flex items-center justify-end border-t border-neutral-800/60 mt-4 pt-3">
                         <form action={handleDeleteCategory}>
                           <input type="hidden" name="id" value={c.id} />
-                          <button
-                            type="submit"
-                            className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-lg transition-all cursor-pointer"
-                            title="Hapus Kategori"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <DeleteIconButton title="Hapus Kategori" />
                         </form>
                       </div>
                     </div>
