@@ -21,7 +21,7 @@ export async function login(formData: FormData) {
     throw new Error(error.message);
   }
 
-  redirect('/admin');
+  redirect('/admin/orders');
 }
 
 export async function logout() {
