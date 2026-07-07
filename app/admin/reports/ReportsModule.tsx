@@ -1,15 +1,47 @@
 'use client';
 
-import React, { useState } from 'react';
-import { TrendingUp, DollarSign, Calendar, Eye, X, Trash2, Loader2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { TrendingUp, DollarSign, Calendar, Eye, X, Trash2, Loader2, BarChart3 } from 'lucide-react';
 import { usePOS, OrderCard } from '../POSContext';
 import { deleteOrder } from '@/lib/actions/admin';
+
+type Period = 'today' | 'week' | 'month' | 'all';
+
+const PERIOD_LABELS: Record<Period, string> = {
+  today: 'Hari Ini',
+  week: 'Minggu Ini',
+  month: 'Bulan Ini',
+  all: 'Semua',
+};
+
+function getStartOfDay(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getStartOfWeek(date: Date): Date {
+  const d = getStartOfDay(date);
+  const day = d.getDay();
+  // Monday as start of week
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  return d;
+}
+
+function getStartOfMonth(date: Date): Date {
+  const d = new Date(date);
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
 
 export default function ReportsModule() {
   const { paidOrders, refreshData } = usePOS();
   const [selectedOrder, setSelectedOrder] = useState<OrderCard | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [period, setPeriod] = useState<Period>('today');
 
   const handleDeleteOrder = async (id: string, orderNumber: string) => {
     if (!window.confirm(`Hapus riwayat pesanan #${orderNumber}? Data item pesanan juga akan terhapus permanen.`)) return;
@@ -25,22 +57,63 @@ export default function ReportsModule() {
     }
   };
 
-  const totalSales = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
-  const totalCount = paidOrders.length;
+  const filteredOrders = useMemo(() => {
+    if (period === 'all') return paidOrders;
+
+    const now = new Date();
+    let cutoff: Date;
+    switch (period) {
+      case 'today':
+        cutoff = getStartOfDay(now);
+        break;
+      case 'week':
+        cutoff = getStartOfWeek(now);
+        break;
+      case 'month':
+        cutoff = getStartOfMonth(now);
+        break;
+    }
+
+    return paidOrders.filter((o) => {
+      if (!o.paid_at) return false;
+      return new Date(o.paid_at) >= cutoff;
+    });
+  }, [paidOrders, period]);
+
+  const totalSales = filteredOrders.reduce((sum, o) => sum + Number(o.total), 0);
+  const totalCount = filteredOrders.length;
+  const avgPerTransaction = totalCount > 0 ? Math.round(totalSales / totalCount) : 0;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300 font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-neutral-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-800 pb-5 gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-3">
             <TrendingUp className="text-amber-500" />
             <span>Laporan Penjualan</span>
           </h1>
           <p className="text-sm text-neutral-400 mt-1">
-            Ringkasan pendapatan harian dan histori transaksi lunas
+            Ringkasan pendapatan dan histori transaksi lunas
           </p>
         </div>
+      </div>
+
+      {/* Period Filter Tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPeriod(p)}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border ${
+              period === p
+                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                : 'bg-neutral-900/50 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700'
+            }`}
+          >
+            {PERIOD_LABELS[p]}
+          </button>
+        ))}
       </div>
 
       {/* Error Banner */}
@@ -52,7 +125,7 @@ export default function ReportsModule() {
       )}
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         <div className="bg-[#141415] border border-neutral-800 rounded-2xl p-5 md:p-6 shadow-xl flex items-center gap-4">
           <div className="bg-emerald-500/10 p-3 md:p-3.5 rounded-2xl text-emerald-500 border border-emerald-500/20 shrink-0">
             <DollarSign className="w-5 h-5 md:w-6 md:h-6" />
@@ -76,12 +149,25 @@ export default function ReportsModule() {
             </p>
           </div>
         </div>
+
+        <div className="col-span-2 md:col-span-1 bg-[#141415] border border-neutral-800 rounded-2xl p-5 md:p-6 shadow-xl flex items-center gap-4">
+          <div className="bg-amber-500/10 p-3 md:p-3.5 rounded-2xl text-amber-500 border border-amber-500/20 shrink-0">
+            <BarChart3 className="w-5 h-5 md:w-6 md:h-6" />
+          </div>
+          <div>
+            <p className="text-[10px] md:text-xs font-semibold text-neutral-500 uppercase tracking-wider">Rata-rata / Transaksi</p>
+            <p className="text-lg md:text-2xl font-extrabold text-amber-400 mt-0.5 md:mt-1">
+              Rp {avgPerTransaction.toLocaleString('id-ID')}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Orders table */}
       <div className="bg-[#141415] border border-neutral-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-6 border-b border-neutral-850 bg-neutral-900/10">
+        <div className="p-6 border-b border-neutral-850 bg-neutral-900/10 flex items-center justify-between">
           <h3 className="font-bold text-base text-neutral-300">Riwayat Transaksi Lunas</h3>
+          <span className="text-xs text-neutral-500 font-semibold">{totalCount} pesanan</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -97,14 +183,14 @@ export default function ReportsModule() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-850 text-sm text-neutral-300">
-              {paidOrders.length === 0 ? (
+              {filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-neutral-500 italic bg-neutral-900/5">
-                    Belum ada transaksi selesai hari ini.
+                    Belum ada transaksi pada periode {PERIOD_LABELS[period].toLowerCase()}.
                   </td>
                 </tr>
               ) : (
-                paidOrders.map((o) => (
+                filteredOrders.map((o) => (
                   <tr key={o.id} className="hover:bg-neutral-800/20 transition-colors">
                     <td className="p-4 pl-6 font-bold text-amber-500">#{o.order_number}</td>
                     <td className="p-4 text-xs text-neutral-400">
@@ -157,7 +243,7 @@ export default function ReportsModule() {
       {/* Order Detail Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-[#141415] border border-neutral-800 rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl relative animate-in zoom-in-95 duration-200 text-left">
+          <div className="bg-[#141415] border border-neutral-800 rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl relative animate-in zoom-in-95 duration-200 text-left max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedOrder(null)}
               className="absolute right-6 top-6 p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-xl transition-all cursor-pointer"
