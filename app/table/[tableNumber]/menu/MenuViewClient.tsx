@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useTransition } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useCartStore } from '@/lib/store/cartStore';
 import {
@@ -190,6 +191,8 @@ const ProductCardItem = React.memo(({
 ProductCardItem.displayName = 'ProductCardItem';
 
 export default function MenuViewClient({ tableNumber, categories, products }: Props) {
+  const router = useRouter();
+  const [isCartPending, startCartTransition] = useTransition();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
@@ -426,12 +429,24 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                 </span>
               </div>
             </div>
-            <Link
-              href={`/table/${tableNumber}/cart`}
-              className="bg-black hover:bg-neutral-900 text-white font-black px-5 py-3 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg"
+            <button
+              onClick={() => {
+                startCartTransition(() => {
+                  router.push(`/table/${tableNumber}/cart`);
+                });
+              }}
+              disabled={isCartPending}
+              className="bg-black hover:bg-neutral-900 text-white font-black px-5 py-3 rounded-xl text-xs uppercase tracking-wider transition-colors shadow-lg flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-80"
             >
-              Lihat Keranjang
-            </Link>
+              {isCartPending ? (
+                <>
+                  <Loader2 size={12} className="animate-spin" />
+                  <span>Memuat...</span>
+                </>
+              ) : (
+                <span>Lihat Keranjang</span>
+              )}
+            </button>
           </div>
         </div>
       )}

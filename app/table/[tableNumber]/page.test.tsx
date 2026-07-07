@@ -16,6 +16,13 @@ vi.mock('@/lib/supabase/server', () => ({
   })
 }));
 
+// Mock next/navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
+
 describe('TableLandingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -52,6 +59,6 @@ describe('TableLandingPage', () => {
 
     expect(screen.getByText('Selamat Datang')).toBeInTheDocument();
     expect(screen.getByText('02')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Mulai Pesan' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mulai Pesan' })).toBeInTheDocument();
   });
 });

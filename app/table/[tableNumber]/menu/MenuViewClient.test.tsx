@@ -1,8 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import MenuViewClient from './MenuViewClient';
 import React from 'react';
 import { useCartStore } from '@/lib/store/cartStore';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
 
 const mockCategories = [
   { id: 'cat-1', name: 'Makanan', icon: 'Utensils', sort_order: 1 },

@@ -1,7 +1,7 @@
 import React from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import TableStatusAlert from '@/components/customer/TableStatusAlert';
+import MulaiPesanButton from '@/components/customer/MulaiPesanButton';
 
 interface Props {
   params: Promise<{ tableNumber: string }>;
@@ -38,12 +38,7 @@ export default async function TableLandingPage({ params }: Props) {
           {tableNumber}
         </div>
         <p className="text-xs text-neutral-500 mb-8">Pilih menu favorit Anda tanpa antre & langsung diantar</p>
-        <Link
-          href={`/table/${tableNumber}/menu`}
-          className="block w-full bg-[#F59E0B] hover:bg-[#D97706] text-black font-extrabold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] duration-200"
-        >
-          Mulai Pesan
-        </Link>
+        <MulaiPesanButton tableNumber={tableNumber} />
       </div>
     </div>
   );
