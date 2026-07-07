@@ -30,7 +30,7 @@ idalpos/
 │   │       ├── cart/             # Shopping cart sheet & customer details
 │   │       │   └── page.tsx
 │   │       └── tracking/         # Customer order tracking timeline
-│   │           └── [orderId]/
+│   │           └── [trackingToken]/ # Tracking via secure, shareable token
 │   │               └── page.tsx
 │   ├── login/                    # Admin login page
 │   │   └── page.tsx
@@ -81,6 +81,7 @@ CREATE TABLE tables (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   number VARCHAR(50) UNIQUE NOT NULL,
   status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+  qr_code_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -102,12 +103,19 @@ CREATE TABLE products (
   price NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
   image_url TEXT,
   available BOOLEAN DEFAULT true NOT NULL,
+  display_order INT DEFAULT 0,
+  is_featured BOOLEAN DEFAULT FALSE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Sequence for user-friendly order number generation
+CREATE SEQUENCE IF NOT EXISTS order_number_seq;
 
 -- 4. Orders
 CREATE TABLE orders (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  order_number VARCHAR(50) UNIQUE NOT NULL DEFAULT 'ORD-' || nextval('order_number_seq')::text,
+  tracking_token UUID UNIQUE DEFAULT gen_random_uuid() NOT NULL,
   table_id UUID REFERENCES tables(id) ON DELETE RESTRICT NOT NULL,
   customer_name VARCHAR(100),
   notes TEXT,
@@ -116,7 +124,16 @@ CREATE TABLE orders (
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'cooking', 'ready', 'served', 'paid')),
   payment_method VARCHAR(20) DEFAULT 'cash' CHECK (payment_method IN ('cash')),
   payment_status VARCHAR(20) DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'paid')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+  
+  -- Lifecycle timestamps for metrics/reporting
+  accepted_at TIMESTAMP WITH TIME ZONE,
+  cooking_at TIMESTAMP WITH TIME ZONE,
+  ready_at TIMESTAMP WITH TIME ZONE,
+  served_at TIMESTAMP WITH TIME ZONE,
+  paid_at TIMESTAMP WITH TIME ZONE,
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- 5. Order Items
@@ -124,8 +141,9 @@ CREATE TABLE order_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   order_id UUID REFERENCES orders(id) ON DELETE CASCADE NOT NULL,
   product_id UUID REFERENCES products(id) ON DELETE RESTRICT NOT NULL,
+  product_name VARCHAR(255) NOT NULL, -- Immutable snapshot of name at purchase
   quantity INT NOT NULL CHECK (quantity > 0),
-  price NUMERIC(12, 2) NOT NULL, -- Captures price at checkout time
+  price NUMERIC(12, 2) NOT NULL, -- Immutable snapshot of price at purchase
   note TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -135,6 +153,7 @@ CREATE TABLE order_items (
 To maintain response times below 2 seconds:
 - Index on `products.category_id` (menu loading filter).
 - Index on `orders.status` (admin pipeline display).
+- Index on `orders.tracking_token` (customer tracking resolution).
 - Index on `orders.table_id` (table resolution).
 
 ---
@@ -152,9 +171,11 @@ Supabase RLS is configured to restrict write operations while permitting anonymo
     - `SELECT`: Public access allowed.
     - `INSERT/UPDATE/DELETE`: Restricted to authenticated admins.
   - **`orders`, `order_items`:**
-    - `SELECT`: Allowed for public (requires matching the `order_id` in customer's local session) and authenticated admins.
+    - `SELECT`: 
+      - Public users (customers) can ONLY read orders/items that match their `tracking_token` (checking tracking token parameter).
+      - Authenticated admins have full read access to all rows.
     - `INSERT`: Public access allowed (Checkout).
-    - `UPDATE`: Authenticated admins only (Updates status/payment status).
+    - `UPDATE`: Restricted to authenticated admins (for updating status and payment status).
     - `DELETE`: Disallowed for all.
 
 ---
@@ -164,12 +185,13 @@ Supabase RLS is configured to restrict write operations while permitting anonymo
 We leverage Supabase Realtime Channels to facilitate immediate, multi-client updates:
 
 * **Customer Tracking Flow:**
-  - The customer landing page saves the placed `orderId` to `localStorage` or queries it via URL.
-  - The Tracking screen initiates a subscription to the `orders` table matching the specific `id`:
+  - The customer checkout page receives the `tracking_token` from the checkout Server Action.
+  - The customer is redirected to `/table/[tableNumber]/tracking/[trackingToken]`.
+  - The Tracking screen initiates a subscription to the `orders` table matching the specific `tracking_token`:
     ```typescript
     supabase
       .channel('order-tracking')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `tracking_token=eq.${trackingToken}` }, (payload) => {
         // Update client status state dynamically
       })
       .subscribe()
@@ -179,7 +201,7 @@ We leverage Supabase Realtime Channels to facilitate immediate, multi-client upd
   - Admin subscribes to the entire `orders` table.
   - On `postgres_changes` event `INSERT`, a toast alert rings a sound notification and appends the new order card to the *Pending* column.
   - On `UPDATE`, the order's state transitions dynamically in the Kanban board.
-  - Server Actions handle status progression (e.g. `updateOrderStatus(orderId, 'cooking')`).
+  - Server Actions handle status progression (e.g. `updateOrderStatus(orderId, 'cooking')`), updating lifecycle timestamps (`cooking_at`, `updated_at`) automatically.
 
 ---
 
@@ -195,3 +217,4 @@ A premium visual layer is configured via Tailwind and customized CSS variables:
   - Cart addition triggers a slight `bounce-up` animation.
   - Status updates in the tracker trigger standard CSS pulses.
   - Loading skeleton states mimic exact component sizes.
+  - The UI always displays `order_number` (e.g., `ORD-12`) to the user, with UUIDs hidden from view.
