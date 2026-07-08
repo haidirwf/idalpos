@@ -27,12 +27,17 @@ export default function QrScannerModal({ onClose }: QrScannerModalProps) {
       .start(
         { facingMode: 'environment' },
         {
-          fps: 10,
+          fps: 20,
+          aspectRatio: 1.0,
           qrbox: (width: number, height: number) => {
-            const size = Math.min(width, height) * 0.7;
+            const size = Math.min(width, height) * 0.75;
             return { width: size, height: size };
           },
-        },
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
         (decodedText: string) => {
           // Success callback
           const match = decodedText.match(/\/table\/([a-zA-Z0-9_-]+)/);
