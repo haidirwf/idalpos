@@ -6,6 +6,7 @@ import MenuViewClient from './menu/MenuViewClient';
 import CartViewClient from './cart/CartViewClient';
 import TrackingViewClient from './tracking/TrackingViewClient';
 import { Loader2 } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface TableClientContainerProps {
   tableNumber: string;
@@ -20,7 +21,10 @@ function TableViewSwitcher() {
   switch (activeView) {
     case 'welcome':
       return (
-        <div className="min-h-screen bg-[#0F0F10] text-white flex flex-col justify-between p-6 font-sans animate-in fade-in duration-300">
+        <div className="min-h-screen bg-[#0F0F10] text-white flex flex-col justify-between p-6 font-sans animate-in fade-in duration-300 relative">
+          <div className="absolute top-6 right-6 z-10">
+            <ThemeToggle />
+          </div>
           <div className="my-auto text-center max-w-sm mx-auto">
             <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-amber-500/20 shadow-[0_0_30px_rgba(245,158,11,0.1)]">
               <span className="text-[#F59E0B] text-3xl font-extrabold">🍴</span>

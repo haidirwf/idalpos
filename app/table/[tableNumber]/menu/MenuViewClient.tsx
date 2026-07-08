@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Loader2,
 } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface Category {
   id: string;
@@ -227,6 +228,9 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {/* My Orders collapse button */}
           {isMounted && myOrders.length > 0 && (
             <button

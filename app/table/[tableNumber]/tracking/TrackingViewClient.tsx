@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useTable } from '../TableContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface OrderDetails {
   order_number: string;
@@ -133,6 +134,10 @@ export default function TrackingViewClient({ trackingToken, tableNumber }: Track
           >
             ← Menu
           </button>
+          
+          <div className="absolute right-0 top-0">
+            <ThemeToggle />
+          </div>
           
           <span className="text-neutral-500 text-xs font-semibold uppercase tracking-wider block mt-8 md:mt-0">Status Pesanan</span>
           <h1 className="text-3xl font-extrabold text-[#F59E0B] tracking-wide mt-2 filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.2)]">

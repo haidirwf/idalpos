@@ -6,6 +6,7 @@ import { checkoutOrder } from '@/app/table/actions';
 import { useTable } from '../TableContext';
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface Props {
   tableNumber: string;
@@ -103,17 +104,20 @@ export default function CartViewClient({ tableNumber }: Props) {
   return (
     <div className="min-h-screen bg-[#0F0F10] text-white flex flex-col font-sans pb-12">
       {/* Top Header */}
-      <header className="sticky top-0 bg-[#0F0F10]/95 backdrop-blur-md border-b border-neutral-900 px-6 py-4 flex items-center gap-4 z-10">
-        <button
-          onClick={() => setActiveView('menu')}
-          className="p-2 hover:bg-neutral-900 rounded-xl transition-colors text-neutral-400 hover:text-white cursor-pointer"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h1 className="text-lg font-bold tracking-tight text-white">Keranjang Belanja</h1>
-          <p className="text-xs text-neutral-400 mt-0.5">Meja {tableNumber}</p>
+      <header className="sticky top-0 bg-[#0F0F10]/95 backdrop-blur-md border-b border-neutral-900 px-6 py-4 flex items-center justify-between z-10">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setActiveView('menu')}
+            className="p-2 hover:bg-neutral-900 rounded-xl transition-colors text-neutral-400 hover:text-white cursor-pointer"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold tracking-tight text-white">Keranjang Belanja</h1>
+            <p className="text-xs text-neutral-400 mt-0.5">Meja {tableNumber}</p>
+          </div>
         </div>
+        <ThemeToggle />
       </header>
 
       {/* Main Container */}

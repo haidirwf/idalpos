@@ -5,6 +5,7 @@ import { logout } from '@/app/login/actions';
 import { Utensils, Tablet, LogOut, ShoppingBag, TrendingUp, Menu as MenuIcon, X } from 'lucide-react';
 import { POSProvider, usePOS } from './POSContext';
 import AdminLoading from './loading';
+import ThemeToggle from '@/components/ThemeToggle';
 
 function AdminLayoutContent({
   children,
@@ -89,8 +90,12 @@ function AdminLayoutContent({
             </button>
           </nav>
 
-          {/* Footer / Logout */}
-          <div className="mt-8 pt-4 border-t border-neutral-800/80">
+          {/* Footer / Theme & Logout */}
+          <div className="mt-8 pt-4 border-t border-neutral-800/80 space-y-3">
+            <div className="flex items-center justify-between gap-2 px-2">
+              <span className="text-xs text-neutral-500 font-bold uppercase tracking-wider">Tampilan</span>
+              <ThemeToggle />
+            </div>
             <form action={logout}>
               <button
                 type="submit"

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { QrCode, ShieldAlert } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const QrScannerModal = dynamic(() => import('@/components/customer/QrScannerModal'), {
   ssr: false,
@@ -13,7 +14,12 @@ export default function HomePage() {
   const [showScanner, setShowScanner] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#0F0F10] text-white flex flex-col justify-between p-6 font-sans animate-in fade-in duration-500">
+    <div className="min-h-screen bg-[#0F0F10] text-white flex flex-col justify-between p-6 font-sans animate-in fade-in duration-500 relative">
+      {/* Floating Theme Toggle */}
+      <div className="absolute top-6 right-6 z-10">
+        <ThemeToggle />
+      </div>
+
       <div className="my-auto text-center max-w-md mx-auto w-full">
         {/* Logo/Icon */}
         <div className="relative mb-8">
