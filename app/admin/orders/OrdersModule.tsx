@@ -2,36 +2,30 @@
 
 import React, { useState, useCallback } from 'react';
 import { updateOrderStatus, markAsPaid } from '@/lib/actions/orders';
-import { ShoppingBag, Loader2, Play, Flame, Award, Navigation, DollarSign, Layers } from 'lucide-react';
+import { ShoppingBag, Loader2, Flame, Award, DollarSign, Layers } from 'lucide-react';
 import { usePOS, OrderCard } from '../POSContext';
 
 const COLUMNS = [
-  { key: 'pending', label: 'Menunggu', color: 'text-amber-500 border-amber-500/20 bg-amber-500/5', icon: <Layers size={16} /> },
-  { key: 'accepted', label: 'Diterima', color: 'text-indigo-500 border-indigo-500/20 bg-indigo-500/5', icon: <Play size={16} /> },
-  { key: 'cooking', label: 'Dimasak', color: 'text-orange-500 border-orange-500/20 bg-orange-500/5', icon: <Flame size={16} /> },
-  { key: 'ready', label: 'Siap', color: 'text-green-500 border-green-500/20 bg-green-500/5', icon: <Award size={16} /> },
-  { key: 'served', label: 'Disajikan', color: 'text-blue-500 border-blue-500/20 bg-blue-500/5', icon: <Navigation size={16} /> },
+  { key: 'placed', label: 'Order Placed', color: 'text-amber-500 border-amber-500/20 bg-amber-500/5', icon: <Layers size={16} /> },
+  { key: 'shipping', label: 'Diantar', color: 'text-orange-500 border-orange-500/20 bg-orange-500/5', icon: <Flame size={16} /> },
+  { key: 'delivered', label: 'Sudah Diantar', color: 'text-green-500 border-green-500/20 bg-green-500/5', icon: <Award size={16} /> },
 ];
 
-const NEXT_STATUS: Record<string, { status: string; label: string; className: string }> = {
-  pending: {
-    status: 'accepted',
-    label: 'Terima Pesanan',
-    className: 'bg-amber-500 hover:bg-amber-600 text-black font-bold',
-  },
-  accepted: {
+const columnFilters: Record<string, (o: OrderCard) => boolean> = {
+  placed: (o) => o.status === 'pending' || o.status === 'accepted',
+  shipping: (o) => o.status === 'cooking' || o.status === 'ready',
+  delivered: (o) => o.status === 'served',
+};
+
+const NEXT_ACTION: Record<string, { status: string; label: string; className: string }> = {
+  placed: {
     status: 'cooking',
-    label: 'Mulai Masak',
+    label: 'Mulai Antar',
     className: 'bg-amber-500 hover:bg-amber-600 text-black font-bold',
   },
-  cooking: {
-    status: 'ready',
-    label: 'Makanan Siap',
-    className: 'bg-amber-500 hover:bg-amber-600 text-black font-bold',
-  },
-  ready: {
+  shipping: {
     status: 'served',
-    label: 'Sajikan Hidangan',
+    label: 'Sampai di Meja',
     className: 'bg-amber-500 hover:bg-amber-600 text-black font-bold',
   },
 };
@@ -78,7 +72,7 @@ const OrderCardItem = React.memo(({
           </span>
         </div>
 
-        {colKey === 'served' ? (
+        {colKey === 'delivered' ? (
           <button
             onClick={() => onMarkPaid(order.id)}
             disabled={actionLoading}
@@ -91,18 +85,18 @@ const OrderCardItem = React.memo(({
             )}
             <span>Bayar Cash</span>
           </button>
-        ) : NEXT_STATUS[colKey] ? (
+        ) : NEXT_ACTION[colKey] ? (
           <button
-            onClick={() => onStatusChange(order.id, NEXT_STATUS[colKey].status)}
+            onClick={() => onStatusChange(order.id, NEXT_ACTION[colKey].status)}
             disabled={actionLoading}
-            className={`w-full font-bold text-xs py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 ${NEXT_STATUS[colKey].className}`}
+            className={`w-full font-bold text-xs py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 ${NEXT_ACTION[colKey].className}`}
           >
             {actionLoading ? (
               <Loader2 size={12} className="animate-spin" />
             ) : (
               null
             )}
-            <span>{NEXT_STATUS[colKey].label}</span>
+            <span>{NEXT_ACTION[colKey].label}</span>
           </button>
         ) : null}
       </div>
@@ -180,11 +174,11 @@ export default function OrdersModule() {
       </div>
 
       {/* Grid columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {COLUMNS.map((col) => {
-          const columnOrders = activeOrders.filter((o) => o.status === col.key);
+          const columnOrders = activeOrders.filter(columnFilters[col.key]);
           return (
-            <div key={col.key} className="bg-[#141415] border border-neutral-800 rounded-2xl flex flex-col min-h-[550px] shadow-xl overflow-hidden">
+            <div key={col.key} className="bg-[#141415] border border-neutral-800 rounded-2xl flex flex-col min-h-[550px] shadow-xl overflow-hidden animate-in fade-in duration-200">
               {/* Column Header */}
               <div className="p-4 border-b border-neutral-800/80 bg-neutral-900/30 flex items-center justify-between">
                 <h3 className="capitalize font-bold text-xs text-neutral-300 flex items-center gap-2">

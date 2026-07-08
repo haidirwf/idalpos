@@ -400,34 +400,34 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                 myOrders.map((order) => {
                   const statusLabels: Record<string, { label: string; color: string; desc: string }> = {
                     pending: {
-                      label: 'Menunggu',
+                      label: 'Order Placed',
                       color: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-                      desc: 'Menunggu konfirmasi dapur',
+                      desc: 'Pesanan masuk & antre diproses',
                     },
                     accepted: {
-                      label: 'Diterima',
-                      color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-                      desc: 'Pesanan dikonfirmasi & antre masak',
+                      label: 'Order Placed',
+                      color: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+                      desc: 'Pesanan dikonfirmasi',
                     },
                     cooking: {
-                      label: 'Dimasak',
+                      label: 'Diantar',
                       color: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-                      desc: 'Chef sedang menyiapkan masakan Anda',
+                      desc: 'Pesanan sedang dikirim ke meja Anda',
                     },
                     ready: {
-                      label: 'Siap',
-                      color: 'bg-green-500/10 text-green-400 border-green-500/20',
-                      desc: 'Hidangan siap diantar ke meja',
+                      label: 'Diantar',
+                      color: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+                      desc: 'Pesanan siap/diantar',
                     },
                     served: {
-                      label: 'Disajikan',
-                      color: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-                      desc: 'Silakan nikmati hidangan Anda',
+                      label: 'Sudah Diantar',
+                      color: 'bg-green-500/10 text-green-400 border-green-500/20',
+                      desc: 'Silakan dinikmati',
                     },
                     paid: {
                       label: 'Lunas',
                       color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-                      desc: 'Pembayaran selesai, terima kasih!',
+                      desc: 'Pembayaran lunas, terima kasih!',
                     },
                   };
                   const config = statusLabels[order.status] || {

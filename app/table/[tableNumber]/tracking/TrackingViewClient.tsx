@@ -10,32 +10,32 @@ interface OrderDetails {
   total: number;
 }
 
-const STATUS_STEPS = ['pending', 'accepted', 'cooking', 'ready', 'served', 'paid'];
+// Simplified steps for customer viewing
+const STATUS_STEPS = ['pending', 'cooking', 'served', 'paid'];
+
+const STEP_MAP: Record<string, string> = {
+  pending: 'pending',
+  accepted: 'pending',
+  cooking: 'cooking',
+  ready: 'cooking',
+  served: 'served',
+  paid: 'paid',
+};
 
 const STEP_LABELS: Record<string, { title: string; desc: string; icon: string }> = {
   pending: {
-    title: 'Pesanan Dibuat',
-    desc: 'Menunggu konfirmasi dari kasir',
+    title: 'Order Placed',
+    desc: 'Pesanan telah diterima dan sedang diproses',
     icon: '📝',
   },
-  accepted: {
-    title: 'Dikonfirmasi',
-    desc: 'Pesanan telah diterima oleh dapur',
-    icon: '✅',
-  },
   cooking: {
-    title: 'Sedang Dimasak',
-    desc: 'Koki sedang menyiapkan hidangan Anda',
-    icon: '🍳',
-  },
-  ready: {
-    title: 'Siap Disajikan',
-    desc: 'Pesanan selesai dimasak & siap diantar',
-    icon: '🛎️',
+    title: 'Sedang Diantar',
+    desc: 'Kurir sedang mengantarkan pesanan ke meja Anda',
+    icon: '🛵',
   },
   served: {
-    title: 'Sudah Disajikan',
-    desc: 'Hidangan telah diantar ke meja Anda',
+    title: 'Siap Dimakan / Sudah Diantar',
+    desc: 'Selamat menikmati hidangan Anda!',
     icon: '🍽️',
   },
   paid: {
@@ -120,7 +120,8 @@ export default function TrackingViewClient({ trackingToken, tableNumber }: Track
     );
   }
 
-  const currentStepIndex = STATUS_STEPS.indexOf(order.status);
+  const mappedStatus = STEP_MAP[order.status] || 'pending';
+  const currentStepIndex = STATUS_STEPS.indexOf(mappedStatus);
 
   return (
     <div className="min-h-[80vh] bg-[#0F0F10] text-white p-6 font-sans flex flex-col justify-between animate-in fade-in duration-300">
