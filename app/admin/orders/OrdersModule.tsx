@@ -6,7 +6,7 @@ import { ShoppingBag, Loader2, Flame, Award, DollarSign, Layers } from 'lucide-r
 import { usePOS, OrderCard } from '../POSContext';
 
 const COLUMNS = [
-  { key: 'placed', label: 'Order Placed', color: 'text-amber-500 border-amber-500/20 bg-amber-500/5', icon: <Layers size={16} /> },
+  { key: 'placed', label: 'Pesanan Masuk', color: 'text-amber-500 border-amber-500/20 bg-amber-500/5', icon: <Layers size={16} /> },
   { key: 'shipping', label: 'Diantar', color: 'text-orange-500 border-orange-500/20 bg-orange-500/5', icon: <Flame size={16} /> },
   { key: 'delivered', label: 'Sudah Diantar', color: 'text-green-500 border-green-500/20 bg-green-500/5', icon: <Award size={16} /> },
 ];

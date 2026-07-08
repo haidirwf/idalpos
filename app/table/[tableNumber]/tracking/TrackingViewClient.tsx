@@ -24,7 +24,7 @@ const STEP_MAP: Record<string, string> = {
 
 const STEP_LABELS: Record<string, { title: string; desc: string; icon: string }> = {
   pending: {
-    title: 'Order Placed',
+    title: 'Pesanan Diterima',
     desc: 'Pesanan telah diterima dan sedang diproses',
     icon: '📝',
   },

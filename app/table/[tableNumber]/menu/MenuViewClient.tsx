@@ -400,12 +400,12 @@ export default function MenuViewClient({ tableNumber, categories, products }: Pr
                 myOrders.map((order) => {
                   const statusLabels: Record<string, { label: string; color: string; desc: string }> = {
                     pending: {
-                      label: 'Order Placed',
+                      label: 'Pesanan Diterima',
                       color: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
                       desc: 'Pesanan masuk & antre diproses',
                     },
                     accepted: {
-                      label: 'Order Placed',
+                      label: 'Pesanan Diterima',
                       color: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
                       desc: 'Pesanan dikonfirmasi',
                     },
