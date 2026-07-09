@@ -13,6 +13,8 @@ export default function QrScannerModal({ onClose }: QrScannerModalProps) {
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [scannedTable, setScannedTable] = useState('');
   const scannerInstanceRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
@@ -49,6 +51,8 @@ export default function QrScannerModal({ onClose }: QrScannerModalProps) {
           }
 
           if (tableNum) {
+            setScannedTable(tableNum);
+            setIsRedirecting(true);
             // Stop scanner first, then navigate
             html5QrCode
               .stop()
@@ -148,6 +152,15 @@ export default function QrScannerModal({ onClose }: QrScannerModalProps) {
           </div>
 
           <div id="reader-element" className="w-full h-full object-cover" />
+
+          {/* Redirection Loader Overlay */}
+          {isRedirecting && (
+            <div className="absolute inset-0 bg-[#0F0F10]/95 z-20 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+              <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <h3 className="font-extrabold text-sm text-white">Menghubungkan...</h3>
+              <p className="text-[10px] text-neutral-400 mt-1">Mengambil data meja {scannedTable}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -174,6 +187,12 @@ export default function QrScannerModal({ onClose }: QrScannerModalProps) {
           50% {
             transform: translateY(220px);
           }
+        }
+        #reader-element {
+          border: none !important;
+        }
+        #reader-element > div {
+          border: none !important;
         }
         #reader-element video {
           object-fit: cover !important;
